@@ -147,3 +147,12 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+# Python & Backend
+venv/
+__pycache__/
+*.pyc
+.env
+
+# Frontend
+.next/
+node_modules/
