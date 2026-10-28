@@ -40,7 +40,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"explore" | "ingest" | "twin">("explore");
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Audio Language State: English, Hindi, Gujarati
+  // Audio Language State
   const [audioLang, setAudioLang] = useState<"en" | "hi" | "gu">("hi");
 
   // Ingestion Form State
@@ -58,7 +58,7 @@ export default function Home() {
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-  // 1. Backend se data fetch karein with Instant Fallback
+  // 1. Backend se data fetch karein
   const fetchMonuments = () => {
     fetch(`${API_BASE}/api/monuments`)
       .then((res) => {
@@ -111,7 +111,7 @@ export default function Home() {
     fetchMonuments();
   }, []);
 
-  // 2. Real Three.js 3D Engine Initialization with Touch & Mouse Support
+  // 2. Real Three.js 3D Engine Initialization (Centered & Balanced)
   useEffect(() => {
     if (activeTab !== "twin" || !canvasRef.current) return;
 
@@ -121,28 +121,30 @@ export default function Home() {
     scene.background = new THREE.Color(0x0c0a09); // Stone-950
 
     const width = canvas.clientWidth || 320;
-    const height = canvas.clientHeight || 400;
+    const height = canvas.clientHeight || 450;
 
+    // Centered Camera Positioning
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 4, 9);
+    camera.position.set(0, 1.6, 8.2);
+    camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     // Lighting
-    const ambientLight = new THREE.AmbientLight(0xfffbeb, 0.9);
+    const ambientLight = new THREE.AmbientLight(0xfffbeb, 0.95);
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0xd97706, 2.5);
-    sunLight.position.set(5, 10, 7);
+    const sunLight = new THREE.DirectionalLight(0xd97706, 2.6);
+    sunLight.position.set(5, 8, 7);
     scene.add(sunLight);
 
-    const pointLight = new THREE.PointLight(0xf59e0b, 1.5, 15);
-    pointLight.position.set(-3, 2, -2);
+    const pointLight = new THREE.PointLight(0xf59e0b, 1.8, 15);
+    pointLight.position.set(-3, 1, -2);
     scene.add(pointLight);
 
-    // Procedural Heritage Monument (Stepped Pavilion & Carved Pillars)
+    // Group with exact vertical center balance (-2.0 to +2.0)
     const group = new THREE.Group();
     meshGroupRef.current = group;
 
@@ -153,40 +155,40 @@ export default function Home() {
       wireframe: wireframe
     });
 
-    // Tiered Steps (Baoli / Stepped Architecture)
+    // Centered Tiered Steps (Y spans from -2.0 to -0.6)
     for (let i = 0; i < 5; i++) {
-      const stepGeo = new THREE.BoxGeometry(7 - i * 1.1, 0.35, 7 - i * 1.1);
+      const stepGeo = new THREE.BoxGeometry(6.6 - i * 1.05, 0.32, 6.6 - i * 1.05);
       const stepMesh = new THREE.Mesh(stepGeo, stoneMaterial);
-      stepMesh.position.y = -1.5 + i * 0.35;
+      stepMesh.position.y = -2.0 + i * 0.32;
       group.add(stepMesh);
     }
 
-    // Carved Pillars
+    // Carved Pillars (Y centered around +0.4)
     const pillarPositions = [
-      [-1.8, -1.8], [1.8, -1.8], [-1.8, 1.8], [1.8, 1.8],
-      [0, -1.8], [0, 1.8]
+      [-1.7, -1.7], [1.7, -1.7], [-1.7, 1.7], [1.7, 1.7],
+      [0, -1.7], [0, 1.7]
     ];
     pillarPositions.forEach(([x, z]) => {
-      const pillarGeo = new THREE.CylinderGeometry(0.18, 0.22, 2.8, 16);
+      const pillarGeo = new THREE.CylinderGeometry(0.18, 0.22, 2.4, 16);
       const pillar = new THREE.Mesh(pillarGeo, stoneMaterial);
-      pillar.position.set(x, 1.4, z);
+      pillar.position.set(x, 0.5, z);
       group.add(pillar);
 
-      const capGeo = new THREE.BoxGeometry(0.55, 0.2, 0.55);
+      const capGeo = new THREE.BoxGeometry(0.52, 0.18, 0.52);
       const cap = new THREE.Mesh(capGeo, stoneMaterial);
-      cap.position.set(x, 2.8, z);
+      cap.position.set(x, 1.72, z);
       group.add(cap);
     });
 
-    // Upper Pavillion Lintel
-    const lintelGeo = new THREE.BoxGeometry(4.4, 0.3, 4.4);
+    // Upper Pavillion Lintel (Top at Y = 1.9)
+    const lintelGeo = new THREE.BoxGeometry(4.2, 0.28, 4.2);
     const lintel = new THREE.Mesh(lintelGeo, stoneMaterial);
-    lintel.position.y = 2.95;
+    lintel.position.y = 1.86;
     group.add(lintel);
 
     scene.add(group);
 
-    // Mouse & Touch Interaction (Desktop + Mobile)
+    // Mouse & Touch Controls
     let isDragging = false;
     let prevX = 0;
     let prevY = 0;
@@ -211,15 +213,13 @@ export default function Home() {
 
     const handleEnd = () => { isDragging = false; };
 
-    // Mouse Listeners
     const onMouseDown = (e: MouseEvent) => handleStart(e.clientX, e.clientY);
     const onMouseMove = (e: MouseEvent) => handleMove(e.clientX, e.clientY);
     const onMouseUp = handleEnd;
     const onWheel = (e: WheelEvent) => {
-      camera.position.z = Math.min(Math.max(camera.position.z + e.deltaY * 0.01, 4), 16);
+      camera.position.z = Math.min(Math.max(camera.position.z + e.deltaY * 0.01, 4), 15);
     };
 
-    // Touch Listeners (Mobile Phones & Tablets)
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 1) {
         handleStart(e.touches[0].clientX, e.touches[0].clientY);
@@ -241,7 +241,6 @@ export default function Home() {
     window.addEventListener("touchmove", onTouchMove, { passive: true });
     window.addEventListener("touchend", onTouchEnd);
 
-    // Responsive Canvas Resize
     const handleResize = () => {
       if (!canvasRef.current) return;
       const w = canvasRef.current.clientWidth;
@@ -252,7 +251,6 @@ export default function Home() {
     };
     window.addEventListener("resize", handleResize);
 
-    // Animation Loop
     let animId: number;
     const animate = () => {
       animId = requestAnimationFrame(animate);
@@ -391,7 +389,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-stone-950 text-stone-100 flex flex-col font-sans">
-      {/* Top Navbar - Responsive for Mobile & Desktop */}
+      {/* Top Navbar */}
       <header className="border-b border-stone-800 bg-stone-900/90 backdrop-blur sticky top-0 z-50 px-4 md:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-amber-600 flex items-center justify-center shadow-lg shadow-amber-900/40 shrink-0">
@@ -410,7 +408,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Tab Controls - Horizontal Scrollable on Mobile */}
+        {/* Tab Controls */}
         <div className="flex items-center gap-1 bg-stone-800/90 p-1 rounded-xl border border-stone-700 overflow-x-auto scrollbar-none self-start sm:self-auto max-w-full">
           <button 
             onClick={() => setActiveTab("explore")}
@@ -444,7 +442,7 @@ export default function Home() {
         {/* TAB 1: HERITAGE EXPLORER & GEOSPATIAL */}
         {activeTab === "explore" && (
           <div className="flex-1 flex flex-col md:flex-row overflow-visible md:overflow-hidden">
-            {/* Left Sidebar: Monuments list */}
+            {/* Left Sidebar */}
             <aside className="w-full md:w-80 lg:w-96 border-b md:border-b-0 md:border-r border-stone-800 p-3.5 md:p-4 flex flex-col gap-2.5 bg-stone-900/40 shrink-0">
               <div className="relative">
                 <Search className="w-4 h-4 absolute left-3 top-2.5 text-stone-400" />
@@ -493,7 +491,7 @@ export default function Home() {
               )}
             </aside>
 
-            {/* Right Pane: Monument Detail + Map */}
+            {/* Right Pane */}
             <section className="flex-1 p-3.5 md:p-6 overflow-y-auto flex flex-col gap-4">
               {selectedMonument ? (
                 <>
@@ -586,7 +584,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Tri-Fusion Architecture Cards - 1 col on mobile, 3 col on desktop */}
+                  {/* Tri-Fusion Architecture Cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="bg-stone-900/50 border border-stone-800 p-3.5 rounded-xl">
                       <div className="flex items-center gap-1.5 text-amber-400 text-xs font-semibold mb-1">
@@ -750,7 +748,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* TAB 3: 3D DIGITAL TWIN */}
+        {/* TAB 3: 3D DIGITAL TWIN (PERFECTLY CENTERED VIEWPORT) */}
         {activeTab === "twin" && (
           <div className="flex-1 p-3.5 md:p-5 flex flex-col gap-2.5 overflow-hidden">
             <div className="flex items-center justify-between">
@@ -776,8 +774,8 @@ export default function Home() {
               </button>
             </div>
 
-            {/* 3D Viewport with Touch & Drag support */}
-            <div className="flex-1 bg-stone-950 border border-stone-800 rounded-2xl relative overflow-hidden min-h-[380px] md:min-h-[460px] flex items-center justify-center touch-none">
+            {/* 3D Viewport with Perfect Center Alignment */}
+            <div className="flex-1 bg-stone-950 border border-stone-800 rounded-2xl relative overflow-hidden min-h-[380px] md:min-h-[500px] flex items-center justify-center touch-none">
               <canvas ref={canvasRef} className="w-full h-full cursor-grab active:cursor-grabbing block" />
 
               <div className="absolute bottom-3 left-3 right-3 md:right-auto bg-stone-900/90 backdrop-blur border border-stone-700/80 px-3 py-1.5 rounded-xl text-[10px] md:text-xs text-stone-300 flex items-center justify-between md:justify-start gap-2.5 pointer-events-none">
