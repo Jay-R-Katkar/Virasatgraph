@@ -18,14 +18,12 @@ import {
   CheckCircle2, 
   Sliders, 
   Eye, 
-  BookOpen, 
   ExternalLink,
   Layers,
   GraduationCap,
   History,
   Archive,
-  Send,
-  MessageSquare
+  Send
 } from "lucide-react";
 
 interface Monument {
@@ -207,7 +205,7 @@ export default function Home() {
   const [activeView, setActiveView] = useState<"home" | "detail" | "ingest">("home");
   const [detailTab, setDetailTab] = useState<"overview" | "3d_twin">("overview");
   
-  // Audio State
+  // Audio Language State
   const [audioLang, setAudioLang] = useState<"gu" | "hi" | "en">("gu");
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
@@ -215,7 +213,7 @@ export default function Home() {
   const [chatInput, setChatInput] = useState("");
   const [chatResponse, setChatResponse] = useState<string | null>(null);
 
-  // 3D Canvas Ref
+  // 3D Canvas Ref & Controls
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [wireframe, setWireframe] = useState(false);
 
@@ -227,17 +225,37 @@ export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
-  // Scroll to section helper
-  const scrollToSection = (id: string) => {
+  // Smooth scroll handler for all buttons
+  const navigateTo = (sectionId?: string) => {
     setActiveView("home");
     setMenuOpen(false);
-    setTimeout(() => {
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: "smooth" });
-    }, 100);
+    if (sectionId) {
+      setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
-  // 1. Audio Guide Player with Gujarati/Hindi/English
+  // Open 3D View directly for any monument
+  const open3DView = (monument: Monument) => {
+    setSelectedMonument(monument);
+    setActiveView("detail");
+    setDetailTab("3d_twin");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Open Detail View for any monument
+  const openDetailView = (monument: Monument) => {
+    setSelectedMonument(monument);
+    setActiveView("detail");
+    setDetailTab("overview");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Audio Guide with Gujarati, Hindi, English
   const playAudioGuide = (monument: Monument, lang: "gu" | "hi" | "en") => {
     if (!('speechSynthesis' in window)) {
       alert("Text-to-Speech not supported in your browser.");
@@ -288,13 +306,13 @@ export default function Home() {
     window.speechSynthesis.speak(utterance);
   };
 
-  // 2. Three.js 3D Viewport Generator
+  // Three.js 3D Viewport in Walnut Brown & Amber Glow
   useEffect(() => {
     if (activeView !== "detail" || detailTab !== "3d_twin" || !canvasRef.current || !selectedMonument) return;
 
     const canvas = canvasRef.current;
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x10261b); // Deep Heritage Tone
+    scene.background = new THREE.Color(0x19110a); // Deep Walnut Canvas
 
     const width = canvas.clientWidth || 400;
     const height = canvas.clientHeight || 450;
@@ -307,37 +325,34 @@ export default function Home() {
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    // Warm Architectural Lighting
-    const ambientLight = new THREE.AmbientLight(0xfff6dd, 1.1);
+    // Warm Ambient + Radiant Amber Direct Lights
+    const ambientLight = new THREE.AmbientLight(0xf4efe3, 1.2);
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0xd4af37, 2.8);
+    const sunLight = new THREE.DirectionalLight(0xf59e0b, 2.8);
     sunLight.position.set(5, 9, 6);
     scene.add(sunLight);
 
-    const fillLight = new THREE.PointLight(0xe5a93c, 1.5, 20);
+    const fillLight = new THREE.PointLight(0xd97706, 1.6, 20);
     fillLight.position.set(-4, 2, -2);
     scene.add(fillLight);
 
     const group = new THREE.Group();
 
-    // Sandstone Material
     const sandstone = new THREE.MeshStandardMaterial({
-      color: 0xc89846,
-      roughness: 0.8,
-      metalness: 0.15,
+      color: 0xd69947,
+      roughness: 0.78,
+      metalness: 0.12,
       wireframe: wireframe
     });
 
     const darkBaseMat = new THREE.MeshStandardMaterial({
-      color: 0x8c6225,
+      color: 0x5c3d23,
       roughness: 0.9,
       wireframe: wireframe
     });
 
-    // Procedural Architecture based on Category
     if (selectedMonument.category === "Stepwells") {
-      // Stepped Pavilion & Pillars
       for (let i = 0; i < 6; i++) {
         const step = new THREE.Mesh(new THREE.BoxGeometry(7 - i * 1.05, 0.3, 7 - i * 1.05), sandstone);
         step.position.y = -2.1 + i * 0.3;
@@ -356,7 +371,6 @@ export default function Home() {
       canopy.position.y = 2.0;
       group.add(canopy);
     } else if (selectedMonument.category === "Temples") {
-      // Shikhar & Mandap
       const base = new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.6, 5.5), darkBaseMat);
       base.position.y = -1.6;
       group.add(base);
@@ -376,7 +390,6 @@ export default function Home() {
       dome.position.set(0, 0.5, 1.5);
       group.add(dome);
     } else {
-      // Fort / Palace Facade & Domes
       const palaceBase = new THREE.Mesh(new THREE.BoxGeometry(6.4, 2.0, 3.2), sandstone);
       palaceBase.position.y = -0.6;
       group.add(palaceBase);
@@ -395,7 +408,7 @@ export default function Home() {
 
     scene.add(group);
 
-    // Mouse & Touch Interaction
+    // Mouse & Touch Orbit Controls
     let isDragging = false;
     let prevX = 0;
     let prevY = 0;
@@ -455,11 +468,11 @@ export default function Home() {
     };
   }, [activeView, detailTab, selectedMonument, wireframe]);
 
-  // AI Prompt Pills
+  // AI Prompt Chips Handler
   const handleAIPrompt = (prompt: string) => {
     if (!selectedMonument) return;
     if (prompt.includes("simple language")) {
-      setChatResponse(`${selectedMonument.name} is a historic gem in ${selectedMonument.city}, Gujarat. Built in ${selectedMonument.period}, it served as a community space combining brilliant ancient architecture with deep cultural traditions.`);
+      setChatResponse(`${selectedMonument.name} is an architectural marvel in ${selectedMonument.city}, Gujarat. Built around ${selectedMonument.period}, it showcases extraordinary craftsmanship designed for cultural reverence and communal harmony.`);
     } else if (prompt.includes("historically important")) {
       setChatResponse(`Historical Significance: ${selectedMonument.significance} ${selectedMonument.fullHistory}`);
     } else if (prompt.includes("architecture")) {
@@ -471,7 +484,7 @@ export default function Home() {
     }
   };
 
-  // Ingestion Submit Handler
+  // Field Ingestion Submit
   const handleIngestion = (e: React.FormEvent) => {
     e.preventDefault();
     if (!uploadTitle) return;
@@ -506,10 +519,9 @@ export default function Home() {
       setSelectedFile(null);
       setTimeout(() => {
         setUploadSuccess(false);
-        setSelectedMonument(newSite);
-        setActiveView("detail");
-      }, 1200);
-    }, 1000);
+        openDetailView(newSite);
+      }, 1000);
+    }, 900);
   };
 
   const filteredMonuments = monuments.filter(m => {
@@ -521,113 +533,168 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-[#fcfbf7] text-[#1c2e24] font-sans antialiased selection:bg-[#cca361] selection:text-white">
+    <div className="min-h-screen bg-[#faf8f4] text-[#2c1f15] font-sans antialiased selection:bg-[#f59e0b] selection:text-[#2a1b12]">
       
-      {/* 1. TOP HEADER (EXACT LIKE VIDEO & SCREENSHOT) */}
-      <header className="sticky top-0 z-50 bg-[#163827] text-[#f7f5ef] border-b border-[#214c36] shadow-md px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        {/* Logo & Brand */}
-        <div 
-          onClick={() => { setActiveView("home"); setSelectedMonument(null); }}
-          className="flex items-center gap-2.5 cursor-pointer group"
-        >
-          <div className="w-10 h-10 rounded-lg bg-[#cca361] text-[#163827] flex items-center justify-center font-bold shadow-md transition group-hover:scale-105">
-            <Landmark className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-xl sm:text-2xl font-serif font-bold tracking-tight text-[#f9f8f3] flex items-center gap-1.5">
-              HeritageAI
-              <span className="text-[10px] font-sans tracking-widest uppercase bg-[#24523b] text-[#cca361] border border-[#cca361]/30 px-2 py-0.5 rounded-full">
-                IITGN
-              </span>
+      {/* ----------------- HORIZONTAL TOP NAVBAR ----------------- */}
+      <header className="sticky top-0 z-50 bg-[#281a10] text-[#fbf8f3] border-b border-[#442c1b] shadow-lg px-4 lg:px-8 py-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          
+          {/* Logo & Brand */}
+          <div 
+            onClick={() => navigateTo()}
+            className="flex items-center gap-2.5 cursor-pointer group shrink-0"
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#f59e0b] to-[#d97706] text-[#24170f] flex items-center justify-center font-bold shadow-md shadow-amber-950/40 transition group-hover:scale-105">
+              <Landmark className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="text-xl sm:text-2xl font-serif font-bold tracking-tight text-[#fcfaf5] flex items-center gap-1.5">
+                HeritageAI
+                <span className="text-[10px] font-sans tracking-widest uppercase bg-[#3f2b1d] text-[#fbbf24] border border-[#f59e0b]/40 px-2.5 py-0.5 rounded-full">
+                  IITGN
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Nav Actions */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
-          <div className="relative hidden md:block">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#cca361]" />
-            <input 
-              type="text" 
-              placeholder="Search monuments..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-[#122e20] border border-[#2b583f] rounded-lg pl-9 pr-3 py-1.5 text-xs text-[#f4f2ea] placeholder-[#8da898] focus:outline-none focus:border-[#cca361] w-48 lg:w-64"
-            />
+          {/* DESKTOP HORIZONTAL NAVIGATION LINKS */}
+          <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+            <button 
+              onClick={() => navigateTo()}
+              className={`px-3 py-1.5 rounded-xl text-xs lg:text-sm font-semibold transition ${
+                activeView === "home" ? "bg-[#3e2717] text-[#fbbf24]" : "text-[#e2dad0] hover:text-[#fbbf24]"
+              }`}
+            >
+              Home
+            </button>
+            <button 
+              onClick={() => navigateTo("monuments-grid")}
+              className="px-3 py-1.5 rounded-xl text-xs lg:text-sm font-semibold text-[#e2dad0] hover:text-[#fbbf24] transition"
+            >
+              Explore Heritage
+            </button>
+            <button 
+              onClick={() => navigateTo("categories-grid")}
+              className="px-3 py-1.5 rounded-xl text-xs lg:text-sm font-semibold text-[#e2dad0] hover:text-[#fbbf24] transition"
+            >
+              Categories
+            </button>
+            <button 
+              onClick={() => open3DView(monuments[0])}
+              className="px-3 py-1.5 rounded-xl text-xs lg:text-sm font-semibold text-[#e2dad0] hover:text-[#fbbf24] flex items-center gap-1.5 transition"
+            >
+              <Box className="w-3.5 h-3.5 text-[#f59e0b]" /> 3D Explorer
+            </button>
+            <button 
+              onClick={() => { setActiveView("ingest"); setMenuOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              className={`px-3 py-1.5 rounded-xl text-xs lg:text-sm font-semibold transition flex items-center gap-1.5 ${
+                activeView === "ingest" ? "bg-[#3e2717] text-[#fbbf24]" : "text-[#e2dad0] hover:text-[#fbbf24]"
+              }`}
+            >
+              <UploadCloud className="w-3.5 h-3.5 text-[#f59e0b]" /> Ingestion Lab
+            </button>
+            <button 
+              onClick={() => navigateTo("our-mission")}
+              className="px-3 py-1.5 rounded-xl text-xs lg:text-sm font-semibold text-[#e2dad0] hover:text-[#fbbf24] transition"
+            >
+              About Mission
+            </button>
+          </nav>
+
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="relative hidden xl:block">
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#fbbf24]" />
+              <input 
+                type="text" 
+                placeholder="Search monuments..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-[#1c120b] border border-[#442f20] rounded-xl pl-9 pr-3 py-1.5 text-xs text-[#fcfaf5] placeholder-[#9c897a] focus:outline-none focus:border-[#f59e0b] w-48"
+              />
+            </div>
+
+            <button 
+              onClick={() => navigateTo("monuments-grid")}
+              className="bg-gradient-to-r from-[#f59e0b] to-[#d97706] hover:from-[#fbbf24] hover:to-[#f59e0b] text-[#24170f] font-bold text-xs sm:text-sm px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md shadow-amber-950/40 transition"
+            >
+              Explore Now <ArrowRight className="w-4 h-4" />
+            </button>
+
+            {/* Mobile Hamburger toggle */}
+            <button 
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="md:hidden w-9 h-9 rounded-xl bg-[#1c120b] border border-[#442f20] flex items-center justify-center text-[#fbbf24] hover:text-white transition"
+            >
+              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
-
-          <button 
-            onClick={() => scrollToSection("monuments-grid")}
-            className="bg-[#cca361] hover:bg-[#d8b374] text-[#163827] font-semibold text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition"
-          >
-            Explore Heritage <ArrowRight className="w-4 h-4" />
-          </button>
-
-          {/* Hamburger Menu Toggle */}
-          <button 
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="w-9 h-9 rounded-lg bg-[#122e20] border border-[#2b583f] flex items-center justify-center text-[#cca361] hover:text-white transition"
-          >
-            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
         </div>
       </header>
 
-      {/* MOBILE / EXPANDED DRAWER MENU (EXACT LIKE VIDEO 0:26) */}
+      {/* MOBILE DRAWER (For Small Screens) */}
       {menuOpen && (
         <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex justify-end animate-fadeIn">
-          <div className="w-80 bg-[#143323] text-[#f7f5ef] h-full p-6 flex flex-col justify-between shadow-2xl border-l border-[#27533c]">
+          <div className="w-80 bg-[#251810] text-[#fbf8f3] h-full p-6 flex flex-col justify-between shadow-2xl border-l border-[#442d1e]">
             <div className="flex flex-col gap-5">
-              <div className="flex items-center justify-between pb-4 border-b border-[#234d38]">
+              <div className="flex items-center justify-between pb-4 border-b border-[#3b271a]">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded bg-[#cca361] text-[#163827] flex items-center justify-center font-bold">
+                  <div className="w-8 h-8 rounded bg-[#f59e0b] text-[#24170f] flex items-center justify-center font-bold">
                     <Landmark className="w-5 h-5" />
                   </div>
-                  <span className="font-serif font-bold text-lg">HeritageAI</span>
+                  <span className="font-serif font-bold text-lg text-[#fbfaf6]">HeritageAI</span>
                 </div>
-                <button onClick={() => setMenuOpen(false)} className="text-[#cca361] hover:text-white">
+                <button onClick={() => setMenuOpen(false)} className="text-[#fbbf24] hover:text-white">
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
               <nav className="flex flex-col gap-2 font-medium text-sm">
                 <button 
-                  onClick={() => { setActiveView("home"); setMenuOpen(false); }}
-                  className="text-left py-2 px-3 rounded-lg hover:bg-[#1e4833] text-[#f7f5ef] transition"
+                  onClick={() => navigateTo()}
+                  className="text-left py-2 px-3 rounded-xl hover:bg-[#382619] text-[#fbf8f3] transition"
                 >
                   Home
                 </button>
                 <button 
-                  onClick={() => scrollToSection("monuments-grid")}
-                  className="text-left py-2 px-3 rounded-lg hover:bg-[#1e4833] text-[#cca361] transition"
+                  onClick={() => navigateTo("monuments-grid")}
+                  className="text-left py-2 px-3 rounded-xl hover:bg-[#382619] text-[#fbbf24] transition"
                 >
                   Explore Heritage
                 </button>
                 <button 
-                  onClick={() => scrollToSection("categories-grid")}
-                  className="text-left py-2 px-3 rounded-lg hover:bg-[#1e4833] text-[#f7f5ef] transition"
+                  onClick={() => navigateTo("categories-grid")}
+                  className="text-left py-2 px-3 rounded-xl hover:bg-[#382619] text-[#fbf8f3] transition"
                 >
                   Categories
                 </button>
                 <button 
-                  onClick={() => { setActiveView("ingest"); setMenuOpen(false); }}
-                  className="text-left py-2 px-3 rounded-lg hover:bg-[#1e4833] text-[#f7f5ef] transition flex items-center justify-between"
+                  onClick={() => { setMenuOpen(false); open3DView(monuments[0]); }}
+                  className="text-left py-2 px-3 rounded-xl hover:bg-[#382619] text-[#fbf8f3] transition flex items-center gap-2"
                 >
-                  <span>Digital Ingestion Lab</span>
-                  <span className="text-[10px] bg-[#cca361] text-[#163827] font-bold px-1.5 py-0.5 rounded">NEW</span>
+                  <Box className="w-4 h-4 text-[#f59e0b]" /> 3D Explorer
                 </button>
                 <button 
-                  onClick={() => scrollToSection("our-mission")}
-                  className="text-left py-2 px-3 rounded-lg hover:bg-[#1e4833] text-[#f7f5ef] transition"
+                  onClick={() => { setActiveView("ingest"); setMenuOpen(false); }}
+                  className="text-left py-2 px-3 rounded-xl hover:bg-[#382619] text-[#fbf8f3] transition flex items-center justify-between"
                 >
-                  About & Mission
+                  <span className="flex items-center gap-2">
+                    <UploadCloud className="w-4 h-4 text-[#f59e0b]" /> Digital Ingestion Lab
+                  </span>
+                  <span className="text-[10px] bg-[#f59e0b] text-[#24170f] font-bold px-1.5 py-0.5 rounded">NEW</span>
+                </button>
+                <button 
+                  onClick={() => navigateTo("our-mission")}
+                  className="text-left py-2 px-3 rounded-xl hover:bg-[#382619] text-[#fbf8f3] transition"
+                >
+                  About Mission
                 </button>
               </nav>
             </div>
 
             <button 
-              onClick={() => scrollToSection("monuments-grid")}
-              className="w-full bg-[#cca361] hover:bg-[#d8b374] text-[#163827] font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 shadow"
+              onClick={() => navigateTo("monuments-grid")}
+              className="w-full bg-[#f59e0b] hover:bg-[#fbbf24] text-[#24170f] font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow"
             >
               Explore Heritage <ArrowRight className="w-4 h-4" />
             </button>
@@ -638,43 +705,41 @@ export default function Home() {
       {/* ----------------- VIEW 1: HOME PAGE ----------------- */}
       {activeView === "home" && (
         <main>
-          {/* HERO SECTION WITH TRANSPARENT HERITAGE BACKGROUND (EXACT LIKE SCREENSHOT) */}
+          {/* HERO SECTION WITH TRANSPARENT HERITAGE STEPWELL BACKGROUND */}
           <section className="relative min-h-[520px] flex items-center justify-center text-center px-4 overflow-hidden">
-            {/* Background Image of Rani ki Vav / Stepwell with dark translucent green overlay */}
             <div 
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 transform transition duration-1000"
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105"
               style={{
                 backgroundImage: `url('https://images.unsplash.com/photo-1609137144813-7d9921338f24?auto=format&fit=crop&w=1920&q=80')`
               }}
             />
-            {/* Dark green translucent veil overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#143323]/85 via-[#143323]/80 to-[#143323]/95" />
+            {/* Walnut-to-Sage Transparent Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#251810]/90 via-[#2d2017]/82 to-[#34463a]/88" />
 
-            {/* Hero Content */}
             <div className="relative z-10 max-w-4xl mx-auto py-16 flex flex-col items-center">
-              <span className="text-xs sm:text-sm font-semibold tracking-[0.25em] text-[#cca361] uppercase mb-4 drop-shadow">
+              <span className="text-xs sm:text-sm font-semibold tracking-[0.25em] text-[#fbbf24] uppercase mb-4 drop-shadow">
                 DISCOVER THE HERITAGE OF GUJARAT
               </span>
 
-              <h1 className="text-4xl sm:text-6xl md:text-7xl font-serif font-bold text-[#fdfcf7] tracking-tight leading-[1.1] mb-6 drop-shadow-md">
+              <h1 className="text-4xl sm:text-6xl md:text-7xl font-serif font-bold text-[#faf8f4] tracking-tight leading-[1.1] mb-6 drop-shadow-md">
                 Every Monument Has a Story.
               </h1>
 
-              <p className="text-sm sm:text-lg text-[#d8e4dc] max-w-2xl font-light leading-relaxed mb-8 drop-shadow">
+              <p className="text-sm sm:text-lg text-[#ded7cb] max-w-2xl font-light leading-relaxed mb-8 drop-shadow">
                 Journey through centuries of history, explore extraordinary architecture, and discover the stories behind Gujarat's remarkable cultural heritage.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto">
                 <button 
-                  onClick={() => scrollToSection("monuments-grid")}
-                  className="w-full sm:w-auto bg-[#cca361] hover:bg-[#d8b374] text-[#163827] font-semibold text-sm sm:text-base px-6 py-3 rounded-lg flex items-center justify-center gap-2 shadow-lg transition"
+                  onClick={() => navigateTo("monuments-grid")}
+                  className="w-full sm:w-auto bg-gradient-to-r from-[#f59e0b] to-[#d97706] hover:from-[#fbbf24] hover:to-[#f59e0b] text-[#24170f] font-bold text-sm sm:text-base px-6 py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-amber-950/40 transition"
                 >
                   Explore Heritage <ArrowRight className="w-4 h-4" />
                 </button>
 
                 <button 
-                  onClick={() => setActiveView("ingest")}
-                  className="w-full sm:w-auto bg-[#1b432e]/70 hover:bg-[#1b432e] text-[#f7f5ef] border border-[#cca361]/50 font-medium text-sm sm:text-base px-6 py-3 rounded-lg flex items-center justify-center gap-2 backdrop-blur-sm transition"
+                  onClick={() => { setActiveView("ingest"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                  className="w-full sm:w-auto bg-[#312217]/75 hover:bg-[#38261a] text-[#faf8f4] border border-[#fbbf24]/50 font-medium text-sm sm:text-base px-6 py-3 rounded-xl flex items-center justify-center gap-2 backdrop-blur-sm transition"
                 >
                   Discover Our Archive
                 </button>
@@ -682,23 +747,21 @@ export default function Home() {
             </div>
           </section>
 
-          {/* CATEGORIES GRID (EXACT LIKE VIDEO 0:01 - 0:04) */}
+          {/* 8 CATEGORIES GRID */}
           <section id="categories-grid" className="max-w-7xl mx-auto px-4 sm:px-8 py-12">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4">
               {CATEGORIES.slice(1).map((cat) => (
                 <div 
                   key={cat.id}
                   onClick={() => {
-                    setActiveCategory(cat.id === "3D Explorer" ? "all" : cat.id);
                     if (cat.id === "3D Explorer") {
-                      setSelectedMonument(monuments[0]);
-                      setActiveView("detail");
-                      setDetailTab("3d_twin");
+                      open3DView(monuments[0]);
                     } else {
-                      scrollToSection("monuments-grid");
+                      setActiveCategory(cat.id);
+                      navigateTo("monuments-grid");
                     }
                   }}
-                  className="bg-white border border-[#e8e4d8] rounded-xl overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer group flex flex-col"
+                  className="bg-white border border-[#e8dfd5] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer group flex flex-col"
                 >
                   <div className="h-28 sm:h-32 w-full relative overflow-hidden bg-stone-100">
                     <img 
@@ -706,16 +769,16 @@ export default function Home() {
                       alt={cat.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
                     />
-                    <div className="absolute top-2 right-2 bg-[#cca361] text-[#163827] text-[10px] font-bold w-5 h-5 rounded flex items-center justify-center shadow">
+                    <div className="absolute top-2 right-2 bg-[#f59e0b] text-[#24170f] text-[10px] font-bold w-5 h-5 rounded-md flex items-center justify-center shadow">
                       {cat.num}
                     </div>
                   </div>
                   <div className="p-3.5 flex-1 flex flex-col justify-between">
                     <div>
-                      <h4 className="font-serif font-bold text-sm sm:text-base text-[#163827]">
+                      <h4 className="font-serif font-bold text-sm sm:text-base text-[#2e1f14]">
                         {cat.name}
                       </h4>
-                      <p className="text-[11px] text-[#6b7d72] mt-1 line-clamp-2">
+                      <p className="text-[11px] text-[#5e7065] mt-1 line-clamp-2">
                         {cat.id === "Stepwells" && "Explore remarkable water architecture and intricately carved stepwells."}
                         {cat.id === "Historical Places" && "Discover historic landmarks and places that shaped Gujarat's past."}
                         {cat.id === "Temples" && "Discover sacred architecture, craftsmanship and historic temple complexes."}
@@ -726,7 +789,7 @@ export default function Home() {
                         {cat.id === "3D Explorer" && "Explore available digital models and immersive representations of sites."}
                       </p>
                     </div>
-                    <span className="text-xs font-semibold text-[#163827] group-hover:text-[#cca361] flex items-center gap-1 mt-3">
+                    <span className="text-xs font-bold text-[#b45309] group-hover:text-[#f59e0b] flex items-center gap-1 mt-3">
                       Explore <ArrowRight className="w-3.5 h-3.5" />
                     </span>
                   </div>
@@ -735,18 +798,18 @@ export default function Home() {
             </div>
           </section>
 
-          {/* DISCOVER ICONIC HERITAGE SITES (EXACT LIKE VIDEO 0:05 - 0:12) */}
+          {/* DISCOVER ICONIC HERITAGE SITES */}
           <section id="monuments-grid" className="max-w-7xl mx-auto px-4 sm:px-8 py-8">
             <div className="mb-8">
-              <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#163827] tracking-tight">
+              <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#2e1f14] tracking-tight">
                 Discover Iconic Heritage Sites
               </h2>
-              <p className="text-xs sm:text-sm text-[#5f7467] mt-1.5">
+              <p className="text-xs sm:text-sm text-[#5f7366] mt-1.5">
                 Explore documented monuments from across Gujarat, each with its own history, architecture and timeline.
               </p>
             </div>
 
-            {/* Filter Pills */}
+            {/* Sage Green Filter Pills */}
             <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-none">
               {CATEGORIES.slice(0, 7).map(c => (
                 <button
@@ -754,8 +817,8 @@ export default function Home() {
                   onClick={() => setActiveCategory(c.id)}
                   className={`text-xs px-3.5 py-1.5 rounded-full font-medium transition whitespace-nowrap ${
                     activeCategory === c.id 
-                      ? "bg-[#163827] text-[#f7f5ef] shadow" 
-                      : "bg-[#ece8dc] text-[#344b3d] hover:bg-[#ded8c5]"
+                      ? "bg-[#382619] text-[#fbbf24] shadow" 
+                      : "bg-[#eaf0eb] text-[#3d5244] hover:bg-[#d8e4db]"
                   }`}
                 >
                   {c.name}
@@ -768,60 +831,49 @@ export default function Home() {
               {filteredMonuments.map((monument) => (
                 <div 
                   key={monument.id}
-                  className="bg-white border border-[#e4ded0] rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 flex flex-col justify-between"
+                  className="bg-white border border-[#e6ded4] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 flex flex-col justify-between"
                 >
                   <div>
-                    {/* Real Image of Heritage Site */}
                     <div className="relative h-48 w-full overflow-hidden bg-stone-100">
                       <img 
                         src={monument.image} 
                         alt={monument.name}
                         className="w-full h-full object-cover hover:scale-105 transition duration-700" 
                       />
-                      <span className="absolute top-3 left-3 bg-[#163827]/90 text-[#cca361] text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded shadow">
+                      <span className="absolute top-3 left-3 bg-[#24170f]/90 text-[#fbbf24] text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md shadow">
                         {monument.category}
                       </span>
                     </div>
 
                     <div className="p-5">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-serif font-bold text-lg text-[#163827]">
-                          {monument.name}
-                        </h3>
-                      </div>
-                      <div className="text-[11px] font-medium text-[#849a8c] mt-0.5 flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-[#cca361]" />
+                      <h3 className="font-serif font-bold text-lg text-[#2e1f14]">
+                        {monument.name}
+                      </h3>
+                      <div className="text-[11px] font-medium text-[#647c6e] mt-0.5 flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-[#f59e0b]" />
                         {monument.city}, {monument.state}
                       </div>
 
-                      <p className="text-xs text-[#52685a] mt-3 line-clamp-3 leading-relaxed">
+                      <p className="text-xs text-[#526458] mt-3 line-clamp-3 leading-relaxed">
                         {monument.shortDesc}
                       </p>
                     </div>
                   </div>
 
-                  {/* Actions: View Details & 3D */}
-                  <div className="px-5 pb-5 pt-2 flex items-center justify-between border-t border-[#f2eee4]">
+                  {/* Actions: View Details & 3D View */}
+                  <div className="px-5 pb-5 pt-3 flex items-center justify-between border-t border-[#f4eee6]">
                     <button 
-                      onClick={() => {
-                        setSelectedMonument(monument);
-                        setActiveView("detail");
-                        setDetailTab("overview");
-                      }}
-                      className="text-xs font-bold text-[#163827] hover:text-[#cca361] flex items-center gap-1.5 transition"
+                      onClick={() => openDetailView(monument)}
+                      className="text-xs font-bold text-[#b45309] hover:text-[#d97706] flex items-center gap-1.5 transition"
                     >
                       View Details <ArrowRight className="w-3.5 h-3.5" />
                     </button>
 
                     <button 
-                      onClick={() => {
-                        setSelectedMonument(monument);
-                        setActiveView("detail");
-                        setDetailTab("3d_twin");
-                      }}
-                      className="text-[11px] font-semibold bg-[#f3eee0] text-[#163827] hover:bg-[#cca361] hover:text-[#163827] px-2.5 py-1 rounded-md flex items-center gap-1 transition"
+                      onClick={() => open3DView(monument)}
+                      className="text-[11px] font-semibold bg-[#eaf0eb] text-[#344d3d] hover:bg-[#f59e0b] hover:text-[#24170f] px-2.5 py-1 rounded-md flex items-center gap-1 transition"
                     >
-                      <Box className="w-3.5 h-3.5" /> 3D View
+                      <Box className="w-3.5 h-3.5 text-[#f59e0b]" /> 3D View
                     </button>
                   </div>
                 </div>
@@ -829,43 +881,42 @@ export default function Home() {
             </div>
           </section>
 
-          {/* OUR MISSION BANNER (EXACT LIKE VIDEO 0:08 - 0:11) */}
+          {/* MISSION SECTION */}
           <section id="our-mission" className="max-w-7xl mx-auto px-4 sm:px-8 py-10">
-            <div className="bg-[#143323] text-[#f7f5ef] rounded-2xl p-6 sm:p-10 shadow-xl border border-[#234d38]">
+            <div className="bg-[#241810] text-[#faf8f4] rounded-2xl p-6 sm:p-10 shadow-xl border border-[#442e1f]">
               <div className="max-w-3xl">
-                <span className="text-[11px] font-bold tracking-widest uppercase text-[#cca361] bg-[#1d4832] px-2.5 py-1 rounded">
+                <span className="text-[11px] font-bold tracking-widest uppercase text-[#fbbf24] bg-[#3a271a] px-2.5 py-1 rounded">
                   OUR MISSION
                 </span>
-                <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#f7f5ef] mt-3 tracking-tight">
+                <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#fcfaf6] mt-3 tracking-tight">
                   Preserving the Past. Inspiring the Future.
                 </h2>
-                <p className="text-xs sm:text-sm text-[#b9cdc1] mt-2.5 leading-relaxed">
+                <p className="text-xs sm:text-sm text-[#cbd4ce] mt-2.5 leading-relaxed">
                   HeritageAI improves digital access to heritage information, helps students learn about historical monuments, and organises reliable records in a structured archive — supporting cultural education and digital preservation.
                 </p>
               </div>
 
-              {/* Four Focus Cards */}
+              {/* 4 Focus Pillars */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-8">
-                <div className="bg-[#1b432e] border border-[#2b5c40] rounded-xl p-3.5 flex items-center gap-3">
-                  <GraduationCap className="w-5 h-5 text-[#cca361]" />
+                <div className="bg-[#302115] border border-[#4a3424] rounded-xl p-3.5 flex items-center gap-3">
+                  <GraduationCap className="w-5 h-5 text-[#fbbf24]" />
                   <span className="text-xs font-semibold">Student learning</span>
                 </div>
-                <div className="bg-[#1b432e] border border-[#2b5c40] rounded-xl p-3.5 flex items-center gap-3">
-                  <Compass className="w-5 h-5 text-[#cca361]" />
+                <div className="bg-[#302115] border border-[#4a3424] rounded-xl p-3.5 flex items-center gap-3">
+                  <Compass className="w-5 h-5 text-[#fbbf24]" />
                   <span className="text-xs font-semibold">Discovery & access</span>
                 </div>
-                <div className="bg-[#1b432e] border border-[#2b5c40] rounded-xl p-3.5 flex items-center gap-3">
-                  <History className="w-5 h-5 text-[#cca361]" />
+                <div className="bg-[#302115] border border-[#4a3424] rounded-xl p-3.5 flex items-center gap-3">
+                  <History className="w-5 h-5 text-[#fbbf24]" />
                   <span className="text-xs font-semibold">Documented history</span>
                 </div>
-                <div className="bg-[#1b432e] border border-[#2b5c40] rounded-xl p-3.5 flex items-center gap-3">
-                  <Archive className="w-5 h-5 text-[#cca361]" />
+                <div className="bg-[#302115] border border-[#4a3424] rounded-xl p-3.5 flex items-center gap-3">
+                  <Archive className="w-5 h-5 text-[#fbbf24]" />
                   <span className="text-xs font-semibold">Structured archive</span>
                 </div>
               </div>
 
-              {/* Panoramic Monument Image Banner */}
-              <div className="mt-6 rounded-xl overflow-hidden h-40 sm:h-56 w-full border border-[#2b5c40] relative">
+              <div className="mt-6 rounded-xl overflow-hidden h-40 sm:h-56 w-full border border-[#4a3424] relative">
                 <img 
                   src="https://images.unsplash.com/photo-1599818816943-41c0e3933ef7?auto=format&fit=crop&w=1600&q=80" 
                   alt="Modhera Sun Temple Panoramic"
@@ -875,16 +926,16 @@ export default function Home() {
             </div>
           </section>
 
-          {/* EXPLORE BY REGION (EXACT LIKE VIDEO 0:10) */}
+          {/* EXPLORE BY REGION */}
           <section className="max-w-7xl mx-auto px-4 sm:px-8 py-6 mb-8">
-            <h3 className="text-lg font-serif font-bold text-[#163827]">Explore by Region</h3>
-            <p className="text-xs text-[#6b7d72]">Browse heritage records by city and heritage cluster across Gujarat.</p>
+            <h3 className="text-lg font-serif font-bold text-[#2e1f14]">Explore by Region</h3>
+            <p className="text-xs text-[#5e7366]">Browse heritage records by city and heritage cluster across Gujarat.</p>
             <div className="flex flex-wrap gap-2 mt-3">
               {["Ahmedabad", "Patan", "Vadodara", "Modhera", "Champaner", "Junagadh", "Somnath"].map(city => (
                 <button 
                   key={city}
-                  onClick={() => { setSearchQuery(city); scrollToSection("monuments-grid"); }}
-                  className="text-xs bg-[#ede8dc] hover:bg-[#cca361] hover:text-[#163827] text-[#2c4033] font-medium px-3 py-1.5 rounded-lg transition"
+                  onClick={() => { setSearchQuery(city); navigateTo("monuments-grid"); }}
+                  className="text-xs bg-[#eaf0eb] hover:bg-[#f59e0b] hover:text-[#24170f] text-[#344d3d] font-medium px-3 py-1.5 rounded-lg transition"
                 >
                   {city}
                 </button>
@@ -894,59 +945,56 @@ export default function Home() {
         </main>
       )}
 
-      {/* ----------------- VIEW 2: MONUMENT DETAIL VIEW (EXACT LIKE VIDEO 0:13 - 0:24) ----------------- */}
+      {/* ----------------- VIEW 2: DETAIL VIEW ----------------- */}
       {activeView === "detail" && selectedMonument && (
         <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 animate-fadeIn">
-          {/* Back button */}
           <button 
-            onClick={() => setActiveView("home")}
-            className="text-xs font-bold text-[#163827] hover:text-[#cca361] flex items-center gap-1.5 mb-6 transition"
+            onClick={() => navigateTo()}
+            className="text-xs font-bold text-[#2e1f14] hover:text-[#b45309] flex items-center gap-1.5 mb-6 transition"
           >
             <ArrowLeft className="w-4 h-4" /> Back to home
           </button>
 
-          {/* Top Banner Header with Real Image */}
-          <div className="relative rounded-2xl overflow-hidden border border-[#d8d2c2] shadow-lg mb-8 bg-[#163827]">
+          <div className="relative rounded-2xl overflow-hidden border border-[#d8cec2] shadow-lg mb-8 bg-[#251810]">
             <div className="h-64 sm:h-80 w-full relative">
               <img 
                 src={selectedMonument.image} 
                 alt={selectedMonument.name}
-                className="w-full h-full object-cover opacity-60" 
+                className="w-full h-full object-cover opacity-65" 
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#143323] via-[#143323]/50 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#20140d] via-[#20140d]/50 to-transparent" />
               
-              {/* Overlay Meta */}
-              <div className="absolute bottom-6 left-6 right-6 text-[#f7f5ef]">
+              <div className="absolute bottom-6 left-6 right-6 text-[#fbfaf6]">
                 <div className="flex items-center gap-2 flex-wrap text-xs font-semibold mb-2">
-                  <span className="bg-[#cca361] text-[#163827] px-2.5 py-0.5 rounded">
+                  <span className="bg-[#f59e0b] text-[#24170f] px-2.5 py-0.5 rounded-md">
                     {selectedMonument.category}
                   </span>
-                  <span className="bg-[#122e20]/80 text-[#d9e6df] px-2.5 py-0.5 rounded flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-[#cca361]" /> {selectedMonument.city}, {selectedMonument.state}
+                  <span className="bg-[#1b1009]/80 text-[#ddd6ca] px-2.5 py-0.5 rounded-md flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-[#fbbf24]" /> {selectedMonument.city}, {selectedMonument.state}
                   </span>
-                  <span className="bg-[#122e20]/80 text-[#d9e6df] px-2.5 py-0.5 rounded">
+                  <span className="bg-[#1b1009]/80 text-[#ddd6ca] px-2.5 py-0.5 rounded-md">
                     {selectedMonument.period}
                   </span>
                 </div>
 
-                <h1 className="text-3xl sm:text-5xl font-serif font-bold text-[#fcfbf7]">
+                <h1 className="text-3xl sm:text-5xl font-serif font-bold text-[#faf8f4]">
                   {selectedMonument.name}
                 </h1>
-                <p className="text-xs sm:text-sm text-[#cca361] font-medium mt-1">
+                <p className="text-xs sm:text-sm text-[#fbbf24] font-medium mt-1">
                   {selectedMonument.nameGujarati} · {selectedMonument.style}
                 </p>
               </div>
             </div>
 
-            {/* Detail Tabs: Overview vs 3D Digital Twin */}
-            <div className="bg-[#122e20] px-6 py-2.5 flex items-center justify-between border-t border-[#234d38]">
+            {/* Detail Tabs Bar */}
+            <div className="bg-[#1e130b] px-6 py-2.5 flex items-center justify-between border-t border-[#3a2618] flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => setDetailTab("overview")}
                   className={`text-xs font-bold px-3.5 py-1.5 rounded-lg transition ${
                     detailTab === "overview" 
-                      ? "bg-[#cca361] text-[#163827]" 
-                      : "text-[#d8e4dc] hover:text-white"
+                      ? "bg-[#f59e0b] text-[#24170f]" 
+                      : "text-[#d6cdc2] hover:text-white"
                   }`}
                 >
                   Overview & History
@@ -955,20 +1003,20 @@ export default function Home() {
                   onClick={() => setDetailTab("3d_twin")}
                   className={`text-xs font-bold px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
                     detailTab === "3d_twin" 
-                      ? "bg-[#cca361] text-[#163827]" 
-                      : "text-[#d8e4dc] hover:text-white"
+                      ? "bg-[#f59e0b] text-[#24170f]" 
+                      : "text-[#d6cdc2] hover:text-white"
                   }`}
                 >
                   <Box className="w-3.5 h-3.5" /> 3D Digital Twin View
                 </button>
               </div>
 
-              {/* MULTILINGUAL AUDIO NARATION CONTROLS (GUJARATI / HINDI / ENGLISH) */}
+              {/* GUJARATI / HINDI / ENGLISH AUDIO GUIDE */}
               <div className="flex items-center gap-1.5">
                 <select
                   value={audioLang}
                   onChange={(e) => setAudioLang(e.target.value as "gu" | "hi" | "en")}
-                  className="bg-[#183928] border border-[#2b583f] text-[#cca361] text-xs rounded-lg px-2 py-1.5 focus:outline-none font-semibold cursor-pointer"
+                  className="bg-[#2a1a0e] border border-[#442c1b] text-[#fbbf24] text-xs rounded-lg px-2 py-1.5 focus:outline-none font-semibold cursor-pointer"
                 >
                   <option value="gu">🏛️ ગુજરાતી (Gujarati)</option>
                   <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
@@ -980,7 +1028,7 @@ export default function Home() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
                     isPlayingAudio 
                       ? "bg-amber-600 text-white animate-pulse" 
-                      : "bg-[#cca361] text-[#163827] hover:bg-[#d8b374]"
+                      : "bg-[#f59e0b] text-[#24170f] hover:bg-[#fbbf24]"
                   }`}
                 >
                   <Volume2 className="w-3.5 h-3.5" />
@@ -990,20 +1038,18 @@ export default function Home() {
             </div>
           </div>
 
-          {/* TAB CONTENT A: OVERVIEW */}
           {detailTab === "overview" && (
             <div className="flex flex-col gap-8">
-              {/* Comprehensive Description Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white border border-[#e4ded0] rounded-xl p-6 shadow-sm">
-                  <h3 className="font-serif font-bold text-lg text-[#163827] flex items-center gap-2 mb-3">
-                    <History className="w-5 h-5 text-[#cca361]" /> Historical Background
+                  <h3 className="font-serif font-bold text-lg text-[#2e1f14] flex items-center gap-2 mb-3">
+                    <History className="w-5 h-5 text-[#f59e0b]" /> Historical Background
                   </h3>
                   <p className="text-xs sm:text-sm text-[#4b6053] leading-relaxed">
                     {selectedMonument.fullHistory}
                   </p>
                   <div className="mt-4 pt-4 border-t border-[#f0ebe0]">
-                    <span className="text-[11px] font-bold text-[#163827] block mb-1">Architectural Epigraphy & Inscriptions:</span>
+                    <span className="text-[11px] font-bold text-[#2e1f14] block mb-1">Architectural Epigraphy & Inscriptions:</span>
                     <p className="text-xs font-mono text-[#8c6721] bg-[#fbf8f0] p-2.5 rounded-lg border border-[#eedfc0]">
                       {selectedMonument.inscriptionRecord}
                     </p>
@@ -1011,24 +1057,24 @@ export default function Home() {
                 </div>
 
                 <div className="bg-white border border-[#e4ded0] rounded-xl p-6 shadow-sm">
-                  <h3 className="font-serif font-bold text-lg text-[#163827] flex items-center gap-2 mb-3">
-                    <Layers className="w-5 h-5 text-[#cca361]" /> Architectural Composition & Design
+                  <h3 className="font-serif font-bold text-lg text-[#2e1f14] flex items-center gap-2 mb-3">
+                    <Layers className="w-5 h-5 text-[#f59e0b]" /> Architectural Composition & Design
                   </h3>
                   <p className="text-xs sm:text-sm text-[#4b6053] leading-relaxed">
                     {selectedMonument.architectureDetails}
                   </p>
                   <div className="mt-4 pt-4 border-t border-[#f0ebe0]">
-                    <span className="text-[11px] font-bold text-[#163827] block mb-1">Cultural Significance:</span>
-                    <p className="text-xs text-[#2b4d3a] bg-[#ecf4ef] p-2.5 rounded-lg border border-[#c9dfd1]">
+                    <span className="text-[11px] font-bold text-[#2e1f14] block mb-1">Cultural Significance:</span>
+                    <p className="text-xs text-[#2b4d3a] bg-[#eaf0eb] p-2.5 rounded-lg border border-[#c4d6cb]">
                       {selectedMonument.significance}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* INTERACTIVE QUESTION PROMPT CHIPS (EXACT LIKE VIDEO 0:15) */}
+              {/* INTERACTIVE PROMPT CHIPS */}
               <div className="bg-white border border-[#e4ded0] rounded-2xl p-6 shadow-sm">
-                <h3 className="text-xs font-bold tracking-wider uppercase text-[#cca361] mb-3">
+                <h3 className="text-xs font-bold tracking-wider uppercase text-[#b45309] mb-3">
                   Ask Heritage AI Assistant
                 </h3>
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -1042,46 +1088,44 @@ export default function Home() {
                     <button
                       key={chip}
                       onClick={() => handleAIPrompt(chip)}
-                      className="text-xs bg-[#f4f0e6] hover:bg-[#cca361] hover:text-[#163827] text-[#244231] font-medium px-3.5 py-1.5 rounded-lg border border-[#ded8c8] transition"
+                      className="text-xs bg-[#f4f0e6] hover:bg-[#f59e0b] hover:text-[#24170f] text-[#2c1f15] font-medium px-3.5 py-1.5 rounded-lg border border-[#ded8c8] transition"
                     >
                       {chip}
                     </button>
                   ))}
                 </div>
 
-                {/* AI Input Form */}
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     placeholder={`Ask about ${selectedMonument.name}...`}
-                    className="flex-1 bg-[#f9f8f4] border border-[#dcd6c6] rounded-xl px-4 py-2 text-xs sm:text-sm text-[#163827] focus:outline-none focus:border-[#cca361]"
+                    className="flex-1 bg-[#f9f8f4] border border-[#dcd6c6] rounded-xl px-4 py-2 text-xs sm:text-sm text-[#2c1f15] focus:outline-none focus:border-[#f59e0b]"
                   />
                   <button 
                     onClick={() => { if (chatInput) { handleAIPrompt(chatInput); setChatInput(""); } }}
-                    className="bg-[#163827] hover:bg-[#1f4a34] text-[#cca361] px-4 py-2 rounded-xl transition"
+                    className="bg-[#24170f] hover:bg-[#382619] text-[#fbbf24] px-4 py-2 rounded-xl transition"
                   >
                     <Send className="w-4 h-4" />
                   </button>
                 </div>
 
                 {chatResponse && (
-                  <div className="mt-4 p-4 bg-[#f8f5ed] border border-[#e8dfcf] rounded-xl text-xs sm:text-sm text-[#274635] leading-relaxed flex items-start gap-2.5">
-                    <Sparkles className="w-5 h-5 text-[#cca361] shrink-0 mt-0.5" />
+                  <div className="mt-4 p-4 bg-[#f8f5ed] border border-[#e8dfcf] rounded-xl text-xs sm:text-sm text-[#2c1f15] leading-relaxed flex items-start gap-2.5">
+                    <Sparkles className="w-5 h-5 text-[#f59e0b] shrink-0 mt-0.5" />
                     <div>
-                      <strong className="block text-[#163827] mb-1">Archive Insight:</strong>
+                      <strong className="block text-[#2e1f14] mb-1">Archive Insight:</strong>
                       {chatResponse}
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* LOCATION SECTION WITH MAPS (EXACT LIKE VIDEO 0:16) */}
               <div className="bg-white border border-[#e4ded0] rounded-xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h4 className="font-serif font-bold text-base text-[#163827] flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-[#cca361]" /> Location & Telemetry
+                  <h4 className="font-serif font-bold text-base text-[#2e1f14] flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-[#f59e0b]" /> Location & Telemetry
                   </h4>
                   <p className="text-xs text-[#52685a] mt-1">
                     {selectedMonument.city}, {selectedMonument.state}, India
@@ -1095,7 +1139,7 @@ export default function Home() {
                   href={`https://www.google.com/maps?q=${selectedMonument.coordinates.lat},${selectedMonument.coordinates.lng}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-[#163827] hover:bg-[#1f4a34] text-[#cca361] font-semibold text-xs px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 shadow transition"
+                  className="bg-[#24170f] hover:bg-[#382619] text-[#fbbf24] font-semibold text-xs px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 shadow transition"
                 >
                   Open in Maps <ExternalLink className="w-3.5 h-3.5" />
                 </a>
@@ -1103,16 +1147,15 @@ export default function Home() {
             </div>
           )}
 
-          {/* TAB CONTENT B: 3D DIGITAL TWIN FOR EVERY MONUMENT */}
           {detailTab === "3d_twin" && (
-            <div className="bg-[#10261b] rounded-2xl p-6 border border-[#214a33] text-[#f7f5ef] flex flex-col gap-4 shadow-xl">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1c422e]">
+            <div className="bg-[#18110b] rounded-2xl p-6 border border-[#38271a] text-[#faf8f4] flex flex-col gap-4 shadow-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2d1e13]">
                 <div>
-                  <h3 className="text-xl font-serif font-bold text-[#fdfcf7] flex items-center gap-2">
-                    <Box className="w-5 h-5 text-[#cca361]" />
+                  <h3 className="text-xl font-serif font-bold text-[#faf8f4] flex items-center gap-2">
+                    <Box className="w-5 h-5 text-[#f59e0b]" />
                     3D Digital Twin: {selectedMonument.name}
                   </h3>
-                  <p className="text-xs text-[#a3b9ac] mt-0.5">
+                  <p className="text-xs text-[#b0a59b] mt-0.5">
                     WebGL 3D structural twin reconstruction. Drag to rotate 360°, scroll to zoom depth.
                   </p>
                 </div>
@@ -1121,23 +1164,22 @@ export default function Home() {
                   onClick={() => setWireframe(!wireframe)}
                   className={`text-xs px-3 py-1.5 rounded-lg border font-mono transition flex items-center gap-1.5 ${
                     wireframe 
-                      ? "bg-[#cca361] text-[#163827] border-[#cca361] font-bold" 
-                      : "bg-[#183928] text-[#cca361] border-[#2f5c43] hover:border-[#cca361]"
+                      ? "bg-[#f59e0b] text-[#24170f] border-[#f59e0b] font-bold" 
+                      : "bg-[#251810] text-[#fbbf24] border-[#442e1d] hover:border-[#f59e0b]"
                   }`}
                 >
                   <Eye className="w-3.5 h-3.5" /> {wireframe ? "Solid Mesh" : "Wireframe Mode"}
                 </button>
               </div>
 
-              {/* Live Canvas Viewport */}
-              <div className="h-[440px] sm:h-[500px] w-full rounded-xl overflow-hidden relative border border-[#214a33] bg-[#0c1d14] flex items-center justify-center">
+              <div className="h-[440px] sm:h-[500px] w-full rounded-xl overflow-hidden relative border border-[#38271a] bg-[#120c08] flex items-center justify-center">
                 <canvas ref={canvasRef} className="w-full h-full cursor-grab active:cursor-grabbing block" />
 
-                <div className="absolute bottom-3 left-3 bg-[#143323]/90 backdrop-blur border border-[#28573d] px-3.5 py-1.5 rounded-lg text-xs text-[#d8e4dc] flex items-center gap-2 pointer-events-none">
-                  <Sliders className="w-3 h-3 text-[#cca361]" />
+                <div className="absolute bottom-3 left-3 bg-[#20150d]/90 backdrop-blur border border-[#442e1d] px-3.5 py-1.5 rounded-lg text-xs text-[#ded7cc] flex items-center gap-2 pointer-events-none">
+                  <Sliders className="w-3 h-3 text-[#f59e0b]" />
                   <span>360° Mouse / Touch Rotation</span>
-                  <span className="text-[#3b664d]">|</span>
-                  <span className="text-[#cca361]">{selectedMonument.style}</span>
+                  <span className="text-[#523e2f]">|</span>
+                  <span className="text-[#fbbf24]">{selectedMonument.style}</span>
                 </div>
               </div>
             </div>
@@ -1145,22 +1187,22 @@ export default function Home() {
         </main>
       )}
 
-      {/* ----------------- VIEW 3: INGESTION LAB PORTAL ----------------- */}
+      {/* ----------------- VIEW 3: INGESTION LAB ----------------- */}
       {activeView === "ingest" && (
         <main className="max-w-4xl mx-auto px-4 sm:px-8 py-10 animate-fadeIn">
           <button 
-            onClick={() => setActiveView("home")}
-            className="text-xs font-bold text-[#163827] hover:text-[#cca361] flex items-center gap-1.5 mb-6 transition"
+            onClick={() => navigateTo()}
+            className="text-xs font-bold text-[#2e1f14] hover:text-[#b45309] flex items-center gap-1.5 mb-6 transition"
           >
             <ArrowLeft className="w-4 h-4" /> Back to home
           </button>
 
           <div className="bg-white border border-[#e4ded0] rounded-2xl p-6 sm:p-8 shadow-md">
             <div className="mb-6">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#cca361] bg-[#163827] px-2.5 py-1 rounded">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#24170f] bg-[#f59e0b] px-2.5 py-1 rounded">
                 FELLOWSHIP INGESTION LAB
               </span>
-              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#163827] mt-2">
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#2e1f14] mt-2">
                 Digitise Unstructured Field Archives
               </h2>
               <p className="text-xs sm:text-sm text-[#52685a] mt-1">
@@ -1171,7 +1213,7 @@ export default function Home() {
             <form onSubmit={handleIngestion} className="flex flex-col gap-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-[#163827] block mb-1">
+                  <label className="text-xs font-bold text-[#2e1f14] block mb-1">
                     Heritage Site / Monument Name
                   </label>
                   <input
@@ -1180,11 +1222,11 @@ export default function Home() {
                     placeholder="e.g. Dada Harir Stepwell (દાદા હરિર વાવ)"
                     value={uploadTitle}
                     onChange={(e) => setUploadTitle(e.target.value)}
-                    className="w-full bg-[#f9f8f4] border border-[#dcd6c6] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#163827] focus:outline-none focus:border-[#cca361]"
+                    className="w-full bg-[#f9f8f4] border border-[#dcd6c6] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#2c1f15] focus:outline-none focus:border-[#f59e0b]"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-[#163827] block mb-1">
+                  <label className="text-xs font-bold text-[#2e1f14] block mb-1">
                     Location / City
                   </label>
                   <input
@@ -1193,19 +1235,19 @@ export default function Home() {
                     placeholder="e.g. Asarwa, Ahmedabad"
                     value={uploadCity}
                     onChange={(e) => setUploadCity(e.target.value)}
-                    className="w-full bg-[#f9f8f4] border border-[#dcd6c6] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#163827] focus:outline-none focus:border-[#cca361]"
+                    className="w-full bg-[#f9f8f4] border border-[#dcd6c6] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#2c1f15] focus:outline-none focus:border-[#f59e0b]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-[#163827] block mb-1">
+                <label className="text-xs font-bold text-[#2e1f14] block mb-1">
                   Heritage Category
                 </label>
                 <select
                   value={uploadCategory}
                   onChange={(e) => setUploadCategory(e.target.value as Monument["category"])}
-                  className="w-full bg-[#f9f8f4] border border-[#dcd6c6] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#163827] focus:outline-none focus:border-[#cca361]"
+                  className="w-full bg-[#f9f8f4] border border-[#dcd6c6] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#2c1f15] focus:outline-none focus:border-[#f59e0b]"
                 >
                   <option value="Stepwells">Stepwells (વાવ)</option>
                   <option value="Temples">Temples (મંદિર)</option>
@@ -1216,17 +1258,17 @@ export default function Home() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-[#163827] block mb-1">
+                <label className="text-xs font-bold text-[#2e1f14] block mb-1">
                   Upload Photographic Survey or Field Notes
                 </label>
-                <div className="border-2 border-dashed border-[#c5bfae] hover:border-[#cca361] bg-[#fbfaf6] rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer relative">
+                <div className="border-2 border-dashed border-[#c5bfae] hover:border-[#f59e0b] bg-[#fbfaf6] rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer relative">
                   <input
                     type="file"
                     onChange={(e) => setSelectedFile(e.target.files ? e.target.files[0] : null)}
                     className="absolute inset-0 opacity-0 cursor-pointer"
                   />
-                  <UploadCloud className="w-8 h-8 text-[#cca361] mb-2" />
-                  <span className="text-xs font-semibold text-[#163827]">
+                  <UploadCloud className="w-8 h-8 text-[#f59e0b] mb-2" />
+                  <span className="text-xs font-semibold text-[#2e1f14]">
                     {selectedFile ? selectedFile.name : "Tap to upload photos or field journals"}
                   </span>
                   <span className="text-[10px] text-[#73887c] mt-0.5">
@@ -1243,15 +1285,15 @@ export default function Home() {
                     setUploadCity("Ahmedabad");
                     setUploadCategory("Stepwells");
                   }}
-                  className="text-xs text-[#cca361] font-semibold hover:underline flex items-center gap-1"
+                  className="text-xs text-[#b45309] font-semibold hover:underline flex items-center gap-1"
                 >
-                  <Sparkles className="w-3.5 h-3.5" /> Fill Sample Survey
+                  <Sparkles className="w-3.5 h-3.5 text-[#f59e0b]" /> Fill Sample Survey
                 </button>
 
                 <button
                   type="submit"
                   disabled={isUploading}
-                  className="bg-[#163827] hover:bg-[#1f4a34] text-[#cca361] font-bold text-xs sm:text-sm px-6 py-2.5 rounded-xl transition shadow flex items-center gap-2"
+                  className="bg-[#24170f] hover:bg-[#382619] text-[#fbbf24] font-bold text-xs sm:text-sm px-6 py-2.5 rounded-xl transition shadow flex items-center gap-2"
                 >
                   {isUploading ? "Extracting Telemetry & OCR..." : "Revitalise and Index Site"}
                 </button>
@@ -1268,24 +1310,24 @@ export default function Home() {
         </main>
       )}
 
-      {/* FOOTER (EXACT LIKE VIDEO 0:32) */}
-      <footer className="bg-[#122e20] text-[#f7f5ef] border-t border-[#1c4430] py-10 px-4 sm:px-8 mt-16">
+      {/* FOOTER */}
+      <footer className="bg-[#20140c] text-[#faf8f4] border-t border-[#3a271a] py-10 px-4 sm:px-8 mt-16">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-8">
           <div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded bg-[#cca361] text-[#163827] flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-lg bg-[#f59e0b] text-[#24170f] flex items-center justify-center font-bold">
                 <Landmark className="w-5 h-5" />
               </div>
-              <span className="font-serif font-bold text-xl text-[#fdfcf7]">HeritageAI</span>
+              <span className="font-serif font-bold text-xl text-[#faf8f4]">HeritageAI</span>
             </div>
-            <p className="text-xs text-[#9eb6a8] mt-2 max-w-sm leading-relaxed">
+            <p className="text-xs text-[#b8ada4] mt-2 max-w-sm leading-relaxed">
               An interactive multimodal platform revitalising grassroots cultural archives and architectural heritage.
             </p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 text-xs">
             <div>
-              <h5 className="font-serif font-bold text-[#cca361] uppercase tracking-wider mb-2.5">Heritage</h5>
+              <h5 className="font-serif font-bold text-[#fbbf24] uppercase tracking-wider mb-2.5">Heritage</h5>
               <ul className="space-y-1.5 text-[#a8c0b2]">
                 <li>Stepwells (વાવ)</li>
                 <li>Temples (મંદિર)</li>
@@ -1295,7 +1337,7 @@ export default function Home() {
             </div>
 
             <div>
-              <h5 className="font-serif font-bold text-[#cca361] uppercase tracking-wider mb-2.5">Regions</h5>
+              <h5 className="font-serif font-bold text-[#fbbf24] uppercase tracking-wider mb-2.5">Regions</h5>
               <ul className="space-y-1.5 text-[#a8c0b2]">
                 <li>Ahmedabad</li>
                 <li>Patan</li>
@@ -1306,7 +1348,7 @@ export default function Home() {
             </div>
 
             <div>
-              <h5 className="font-serif font-bold text-[#cca361] uppercase tracking-wider mb-2.5">Initiative</h5>
+              <h5 className="font-serif font-bold text-[#fbbf24] uppercase tracking-wider mb-2.5">Initiative</h5>
               <ul className="space-y-1.5 text-[#a8c0b2]">
                 <li>IIT Gandhinagar</li>
                 <li>Explorer Fellowship</li>
@@ -1317,7 +1359,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-[#1f4733] text-[11px] text-[#718d7c] flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-[#312014] text-[11px] text-[#8c7b6f] flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>© 2026 HeritageAI / VirasatGraph — an independent educational project.</span>
           <span>Blithchron '27 Open Innovation · Track 2: Culture & Digital Heritage</span>
         </div>
