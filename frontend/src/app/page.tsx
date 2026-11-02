@@ -54,6 +54,12 @@ interface Monument {
   };
 }
 
+interface AIResponseData {
+  en: string;
+  hi: string;
+  gu: string;
+}
+
 const MONUMENTS_DATA: Monument[] = [
   {
     id: "rani_ki_vav",
@@ -271,7 +277,7 @@ const MONUMENTS_DATA: Monument[] = [
     significance: "India's first UNESCO World Heritage City (inscribed 2017), celebrated for living grassroots community heritage and climate-responsive vernacular planning.",
     audioText: {
       en: "Ahmedabad, India's first UNESCO World Heritage City, is world-famous for its historic gated pols, carved wooden havelis, and the iconic Tree of Life stone lattice at Sidi Saiyyed Mosque.",
-      hi: "भारत का पहला यूनेस्को विश्व धरोहर शहर, अहमदाबाद 1411 ईस्वी में बसाया गया था। इसकी ऐतिहासिक पोलें, लकड़ी की नक्काशीदार हवेलियां और सीदी सैय्यद की जाली विश्व प्रसिद्ध हैं।",
+      hi: "भारत का पहला यूनेस्को विश्व धरोहर शहर, अहमदाबाद 1411 ईस्वी में सुल्तान अहमद शाह द्वारा बसाया गया था। इसकी ऐतिहासिक पोलें, लकड़ी की नक्काशीदार हवेलियां और सीदी सैय्यद की जाली विश्व प्रसिद्ध हैं।",
       gu: "ભારતનું પ્રથમ યુનેસ્કો વર્લ્ડ હેરિટેજ સિટી અમદાવાદ ૧૪૧૧માં વસાવવામાં આવ્યું હતું. તેની ઐતિહાસિક પોળો અને સીદી સૈયદની કલાત્મક વૃક્ષ જાળી સમગ્ર વિશ્વમાં વિખ્યાત છે."
     }
   },
@@ -333,10 +339,12 @@ export default function Home() {
   const [audioLang, setAudioLang] = useState<"gu" | "hi" | "en">("gu");
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
-  // AI Q&A State with Instant Intelligent Answers & Loading State
+  // AI Assistant States (Supports Multilingual Gujarati, Hindi, English Response)
   const [chatInput, setChatInput] = useState("");
-  const [chatResponse, setChatResponse] = useState<string | null>(null);
+  const [chatResponse, setChatResponse] = useState<AIResponseData | null>(null);
+  const [aiLang, setAiLang] = useState<"gu" | "hi" | "en">("gu");
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isAiSpeaking, setIsAiSpeaking] = useState(false);
 
   // 3D Canvas Ref & Controls
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -374,25 +382,19 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Multilingual Speech Synthesis (Gujarati, Hindi, English)
-  const playAudioGuide = (monument: Monument, lang: "gu" | "hi" | "en") => {
+  // Universal Multilingual Speech Synthesizer
+  const speakText = (text: string, lang: "gu" | "hi" | "en", onComplete?: () => void) => {
     if (!('speechSynthesis' in window)) {
       alert("Text-to-Speech not supported in your browser.");
       return;
     }
     window.speechSynthesis.cancel();
 
-    if (isPlayingAudio) {
-      setIsPlayingAudio(false);
-      return;
-    }
-
     const voices = window.speechSynthesis.getVoices();
     const gujVoice = voices.find(v => v.lang.startsWith("gu"));
     const hindiVoice = voices.find(v => v.lang.startsWith("hi") || v.lang.includes("IN") || v.name.toLowerCase().includes("india"));
     const engVoice = voices.find(v => v.lang.startsWith("en"));
 
-    let textToSpeak = monument.audioText[lang];
     let targetVoice: SpeechSynthesisVoice | undefined = undefined;
     let langCode = "gu-IN";
 
@@ -412,17 +414,39 @@ export default function Home() {
       langCode = "en-IN";
     }
 
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = langCode;
     if (targetVoice) utterance.voice = targetVoice;
     utterance.rate = 0.92;
     utterance.pitch = 1.0;
 
-    utterance.onstart = () => setIsPlayingAudio(true);
-    utterance.onend = () => setIsPlayingAudio(false);
-    utterance.onerror = () => setIsPlayingAudio(false);
+    utterance.onend = () => { if (onComplete) onComplete(); };
+    utterance.onerror = () => { if (onComplete) onComplete(); };
 
     window.speechSynthesis.speak(utterance);
+  };
+
+  // Play Main Audio Guide
+  const playAudioGuide = (monument: Monument, lang: "gu" | "hi" | "en") => {
+    if (isPlayingAudio) {
+      window.speechSynthesis.cancel();
+      setIsPlayingAudio(false);
+      return;
+    }
+    setIsPlayingAudio(true);
+    speakText(monument.audioText[lang], lang, () => setIsPlayingAudio(false));
+  };
+
+  // Play AI Response in Gujarati / Hindi / English
+  const playAiResponse = (lang: "gu" | "hi" | "en") => {
+    if (!chatResponse) return;
+    if (isAiSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsAiSpeaking(false);
+      return;
+    }
+    setIsAiSpeaking(true);
+    speakText(chatResponse[lang], lang, () => setIsAiSpeaking(false));
   };
 
   // Three.js 3D Viewport in Walnut Brown & Amber Glow
@@ -485,7 +509,6 @@ export default function Home() {
       opacity: 0.85
     });
 
-    // 1. STEPWELLS: Descending subterranean tiers, carved pillars & water pool
     if (selectedMonument.category === "Stepwells") {
       for (let i = 0; i < 6; i++) {
         const step = new THREE.Mesh(new THREE.BoxGeometry(7 - i * 1.05, 0.32, 7 - i * 1.05), sandstone);
@@ -509,7 +532,6 @@ export default function Home() {
       canopy.position.y = 2.0;
       group.add(canopy);
     } 
-    // 2. TEMPLES: Sprawling Jagati base, 52-pillar Sabha Mandap & tall curvilinear Shikhara
     else if (selectedMonument.category === "Temples") {
       const isPalitana = selectedMonument.id === "palitana_temples";
       const useMat = isPalitana ? marbleMat : sandstone;
@@ -518,12 +540,10 @@ export default function Home() {
       base.position.y = -1.6;
       group.add(base);
 
-      // Shikhara (Spire)
       const shikhar = new THREE.Mesh(new THREE.ConeGeometry(1.6, 3.4, 8), useMat);
       shikhar.position.set(0, 1.3, -0.8);
       group.add(shikhar);
 
-      // Amalaka & Kalasha
       const amalaka = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.8, 0.25, 16), useMat);
       amalaka.position.set(0, 3.0, -0.8);
       group.add(amalaka);
@@ -532,7 +552,6 @@ export default function Home() {
       kalash.position.set(0, 3.25, -0.8);
       group.add(kalash);
 
-      // Mandapa
       const mandapPillars = [[-1.3, 1.0], [1.3, 1.0], [-1.3, 2.2], [1.3, 2.2], [0, 2.2]];
       mandapPillars.forEach(([x, z]) => {
         const col = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 1.8, 12), useMat);
@@ -543,13 +562,11 @@ export default function Home() {
       dome.position.set(0, 0.5, 1.6);
       group.add(dome);
     }
-    // 3. ARCHAEOLOGICAL / HARAPPAN SITES: Reservoir steps, stone citadel bastions & ancient ramp
     else if (selectedMonument.category === "Archaeological Sites") {
       const rockBase = new THREE.Mesh(new THREE.BoxGeometry(6.6, 1.2, 5.5), darkBaseMat);
       rockBase.position.y = -1.2;
       group.add(rockBase);
 
-      // Harappan Water Reservoir Steps
       for (let i = 0; i < 4; i++) {
         const resStep = new THREE.Mesh(new THREE.BoxGeometry(3.5 - i * 0.7, 0.25, 3.0 - i * 0.6), sandstone);
         resStep.position.set(-1.0, -1.0 + i * 0.25, 0);
@@ -559,7 +576,6 @@ export default function Home() {
       water.position.set(-1.0, -1.15, 0);
       group.add(water);
 
-      // Citadel Gate Bastions
       const bastion1 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.2, 1.2), sandstone);
       bastion1.position.set(1.8, 0.2, -1.0);
       group.add(bastion1);
@@ -567,7 +583,6 @@ export default function Home() {
       bastion2.position.set(1.8, 0.2, 1.0);
       group.add(bastion2);
 
-      // Signboard Beam
       const signPost = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.6, 0.1), darkBaseMat);
       signPost.position.set(1.8, 1.5, 0);
       group.add(signPost);
@@ -575,13 +590,11 @@ export default function Home() {
       signBoard.position.set(1.8, 2.1, 0);
       group.add(signBoard);
     }
-    // 4. FORTS & PALACES: Massive Indo-Saracenic royal facade, 300-ft central clock tower & chhatris
     else if (selectedMonument.category === "Forts & Palaces") {
       const palaceBase = new THREE.Mesh(new THREE.BoxGeometry(6.4, 1.8, 3.2), sandstone);
       palaceBase.position.y = -0.7;
       group.add(palaceBase);
 
-      // Central Clock Tower
       const clockTower = new THREE.Mesh(new THREE.BoxGeometry(1.3, 3.8, 1.3), sandstone);
       clockTower.position.set(0, 0.7, 0.3);
       group.add(clockTower);
@@ -589,7 +602,6 @@ export default function Home() {
       towerRoof.position.set(0, 2.9, 0.3);
       group.add(towerRoof);
 
-      // Flanking Domes & Minarets
       [-2.4, 2.4].forEach(x => {
         const minar = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 2.8, 16), sandstone);
         minar.position.set(x, 0.2, 0.6);
@@ -599,23 +611,19 @@ export default function Home() {
         group.add(dome);
       });
     }
-    // 5. HISTORICAL PLACES: Medieval Islamic gateway with jali screen & fluted minarets
     else {
       const gateArch = new THREE.Mesh(new THREE.BoxGeometry(4.8, 2.6, 1.2), sandstone);
       gateArch.position.y = -0.3;
       group.add(gateArch);
 
-      // Pierced Archway
       const archPortal = new THREE.Mesh(new THREE.BoxGeometry(2.0, 2.0, 1.4), new THREE.MeshStandardMaterial({ color: 0x120c08 }));
       archPortal.position.set(0, -0.6, 0);
       group.add(archPortal);
 
-      // Delicate Jali Screen Simulation
       const jali = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.2), new THREE.MeshStandardMaterial({ color: 0xf59e0b, wireframe: true }));
       jali.position.set(0, 0.8, 0.62);
       group.add(jali);
 
-      // Fluted Minars
       [-2.6, 2.6].forEach(x => {
         const minar = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 3.4, 12), sandstone);
         minar.position.set(x, 0.4, 0);
@@ -628,7 +636,6 @@ export default function Home() {
 
     scene.add(group);
 
-    // Mouse & Touch Orbit Controls
     let isDragging = false;
     let prevX = 0;
     let prevY = 0;
@@ -688,7 +695,7 @@ export default function Home() {
     };
   }, [activePage, selectedMonument, wireframe]);
 
-  // SMART AI ASSISTANT NATURAL LANGUAGE RESPONDER
+  // SMART AI ASSISTANT NATURAL LANGUAGE RESPONDER (GENERATES EN, HI, GU)
   const handleAIPrompt = (query: string) => {
     if (!selectedMonument || !query.trim()) return;
     setIsAiLoading(true);
@@ -697,49 +704,76 @@ export default function Home() {
     const q = query.toLowerCase();
 
     setTimeout(() => {
+      let responseData: AIResponseData;
+
       // 1. Who built / Founder / Dynasty / Ruler
-      if (q.includes("who built") || q.includes("builder") || q.includes("king") || q.includes("queen") || q.includes("dynasty") || q.includes("kisne") || q.includes("banwaya") || q.includes("ruler")) {
-        setChatResponse(`🏛️ Patron & Origin: ${selectedMonument.fullHistory.split('.')[0]}. Built during the ${selectedMonument.period} under the guidance of regional rulers to serve cultural, spiritual, and communal welfare.`);
+      if (q.includes("who built") || q.includes("builder") || q.includes("king") || q.includes("queen") || q.includes("dynasty") || q.includes("kisne") || q.includes("banwaya") || q.includes("ruler") || q.includes("કોણે")) {
+        responseData = {
+          en: `🏛️ Patron & Origin: ${selectedMonument.fullHistory.split('.')[0]}. Built during ${selectedMonument.period} under regional dynastic patronage.`,
+          hi: `🏛️ निर्माता एवं राजवंश: इसका निर्माण ${selectedMonument.period} के दौरान करवाया गया था। ${selectedMonument.audioText.hi.split('।')[1] || selectedMonument.name + ' का समृद्ध ऐतिहासिक महत्व है।'}`,
+          gu: `🏛️ સ્થાપક અને ઇતિહાસ: આ સ્થાપત્યનું નિર્માણ ${selectedMonument.period}માં કરવામાં આવ્યું હતું. ${selectedMonument.nameGujarati} પ્રાચીન ગુજરાતના રાજવી વારસાનું ઉત્કૃષ્ટ પ્રતીક છે.`
+        };
       }
       // 2. When / Period / Era / Century / Age
-      else if (q.includes("when") || q.includes("year") || q.includes("period") || q.includes("century") || q.includes("age") || q.includes("old") || q.includes("kab") || q.includes("date")) {
-        setChatResponse(`⏳ Chronology & Era: ${selectedMonument.name} dates back to ${selectedMonument.period}. It represents centuries of architectural evolution in ${selectedMonument.district}, Gujarat.`);
+      else if (q.includes("when") || q.includes("year") || q.includes("period") || q.includes("century") || q.includes("age") || q.includes("old") || q.includes("kab") || q.includes("date") || q.includes("ક્યારે")) {
+        responseData = {
+          en: `⏳ Chronology & Era: ${selectedMonument.name} dates back to ${selectedMonument.period}. It represents centuries of architectural evolution in ${selectedMonument.district}, Gujarat.`,
+          hi: `⏳ काल एवं शताब्दी: ${selectedMonument.name} का निर्माण ${selectedMonument.period} में हुआ था। यह गुजरात के ${selectedMonument.district} जिले में स्थित प्राचीन स्थापत्य का उत्कृष्ट उदाहरण है।`,
+          gu: `⏳ સમયગાળો અને સદી: ${selectedMonument.nameGujarati}નું નિર્માણ ${selectedMonument.period} દરમિયાન થયું હતું. તે ગુજરાતના ${selectedMonument.district} જિલ્લાની અપ્રતિમ ઐતિહાસિક વિરાસત છે.`
+        };
       }
       // 3. Where / Location / City / Reach / Map
-      else if (q.includes("where") || q.includes("location") || q.includes("city") || q.includes("district") || q.includes("kahan") || q.includes("reach") || q.includes("place")) {
-        setChatResponse(`📍 Geographical Location: ${selectedMonument.name} is situated in ${selectedMonument.city}, ${selectedMonument.district} district, Gujarat, India. Exact GPS Telemetry: ${selectedMonument.coordinates.lat.toFixed(4)}°N, ${selectedMonument.coordinates.lng.toFixed(4)}°E.`);
+      else if (q.includes("where") || q.includes("location") || q.includes("city") || q.includes("district") || q.includes("kahan") || q.includes("reach") || q.includes("place") || q.includes("ક્યાં")) {
+        responseData = {
+          en: `📍 Geographical Location: ${selectedMonument.name} is situated in ${selectedMonument.city}, ${selectedMonument.district} district, Gujarat, India. Coordinates: ${selectedMonument.coordinates.lat.toFixed(4)}°N, ${selectedMonument.coordinates.lng.toFixed(4)}°E.`,
+          hi: `📍 स्थान एवं भौगोलिक विवरण: ${selectedMonument.name} गुजरात के ${selectedMonument.district} जिले के ${selectedMonument.city} में स्थित है। अक्षांश-देशांतर: ${selectedMonument.coordinates.lat.toFixed(4)}°N, ${selectedMonument.coordinates.lng.toFixed(4)}°E.`,
+          gu: `📍 સ્થળ અને નકશો: ${selectedMonument.nameGujarati} ગુજરાત રાજ્યના ${selectedMonument.district} જિલ્લાના ${selectedMonument.city}માં આવેલું છે. અક્ષાંશ-રેખાંશ: ${selectedMonument.coordinates.lat.toFixed(4)}°N, ${selectedMonument.coordinates.lng.toFixed(4)}°E.`
+        };
       }
       // 4. Architecture / Design / Stone / Pillars
-      else if (q.includes("architecture") || q.includes("style") || q.includes("design") || q.includes("stone") || q.includes("pillar") || q.includes("tier") || q.includes("stair") || q.includes("carving") || q.includes("vastu")) {
-        setChatResponse(`🎨 Architectural Mastery: Built in ${selectedMonument.style}. ${selectedMonument.architectureDetails}`);
+      else if (q.includes("architecture") || q.includes("style") || q.includes("design") || q.includes("stone") || q.includes("pillar") || q.includes("tier") || q.includes("stair") || q.includes("carving") || q.includes("vastu") || q.includes("શૈલી")) {
+        responseData = {
+          en: `🎨 Architectural Mastery: Built in ${selectedMonument.style}. ${selectedMonument.architectureDetails}`,
+          hi: `🎨 स्थापत्य एवं शिल्पकला: यह स्थल ${selectedMonument.style} में निर्मित है। इसमें प्राचीन पत्थरों की बारीक नक्काशी, पारंपरिक खंभे और अद्भुत वास्तुकला देखने को मिलती है।`,
+          gu: `🎨 સ્થાપત્ય અને કોતરણી: આ સ્થાપત્ય ${selectedMonument.style} શૈલીમાં બનાવવામાં આવ્યું છે. પથ્થરની અદભૂત કલાત્મક કોતરણી, સ્તંભો અને રચના વિશ્વસ્તરીય છે.`
+        };
       }
       // 5. Why important / Significance / UNESCO
-      else if (q.includes("why") || q.includes("important") || q.includes("significance") || q.includes("unesco") || q.includes("special") || q.includes("khas") || q.includes("famous")) {
-        setChatResponse(`⭐ Cultural Importance: ${selectedMonument.significance}`);
+      else if (q.includes("why") || q.includes("important") || q.includes("significance") || q.includes("unesco") || q.includes("special") || q.includes("khas") || q.includes("famous") || q.includes("મહત્વ")) {
+        responseData = {
+          en: `⭐ Cultural Importance: ${selectedMonument.significance} ${selectedMonument.shortDesc}`,
+          hi: `⭐ सांस्कृतिक महत्व: ${selectedMonument.significance} ${selectedMonument.shortDesc}`,
+          gu: `⭐ સાંસ્કૃતિક મહત્વ: ${selectedMonument.significance} ${selectedMonument.shortDesc}`
+        };
       }
       // 6. Simple language explanation
-      else if (q.includes("simple language") || q.includes("explain") || q.includes("easy") || q.includes("aasan")) {
-        setChatResponse(`💡 Simple Overview: ${selectedMonument.name} (${selectedMonument.nameGujarati}) is a treasured heritage site in ${selectedMonument.city}, Gujarat. Built in ${selectedMonument.period}, it showcases ancient craftsmanship, community water-management, and deep spiritual traditions.`);
+      else if (q.includes("simple language") || q.includes("explain") || q.includes("easy") || q.includes("aasan") || q.includes("સરળ")) {
+        responseData = {
+          en: `💡 Simple Overview: ${selectedMonument.name} (${selectedMonument.nameGujarati}) is a treasured heritage site in ${selectedMonument.city}, Gujarat. Built in ${selectedMonument.period}, it showcases ancient craftsmanship, community water-management, and deep spiritual traditions.`,
+          hi: `💡 सरल शब्दों में विवरण: ${selectedMonument.name} गुजरात के ${selectedMonument.city} का एक प्राचीन और प्रसिद्ध धरोहर स्थल है। इसका निर्माण ${selectedMonument.period} में हुआ था। यह प्राचीन भारतीय शिल्पकला और संस्कृति का अद्भुत प्रतीक है।`,
+          gu: `💡 સરળ શબ્દોમાં માહિતી: ${selectedMonument.nameGujarati} ગુજરાતના ${selectedMonument.city}માં આવેલું એક અત્યંત પ્રખ્યાત અને પવિત્ર સ્થાપત્ય છે. ${selectedMonument.period}માં બનેલું આ સ્થળ ભારતીય સંસ્કૃતિ અને કલાનું ગૌરવ છે.`
+        };
       }
       // 7. Student study summary
-      else if (q.includes("student") || q.includes("summarize") || q.includes("exam") || q.includes("notes") || q.includes("short")) {
-        setChatResponse(`📚 Student Quick Notes:\n• Monument: ${selectedMonument.name} (${selectedMonument.nameGujarati})\n• Era: ${selectedMonument.period}\n• Style: ${selectedMonument.style}\n• District: ${selectedMonument.district}, Gujarat\n• Key Takeaway: ${selectedMonument.shortDesc}`);
+      else if (q.includes("student") || q.includes("summarize") || q.includes("exam") || q.includes("notes") || q.includes("short") || q.includes("વિદ્યાર્થી")) {
+        responseData = {
+          en: `📚 Student Quick Notes:\n• Monument: ${selectedMonument.name} (${selectedMonument.nameGujarati})\n• Era: ${selectedMonument.period}\n• Style: ${selectedMonument.style}\n• District: ${selectedMonument.district}, Gujarat\n• Key Takeaway: ${selectedMonument.shortDesc}`,
+          hi: `📚 विद्यार्थी अध्ययन सारांश:\n• स्थल: ${selectedMonument.name} (${selectedMonument.nameGujarati})\n• काल: ${selectedMonument.period}\n• स्थापत्य शैली: ${selectedMonument.style}\n• जिला: ${selectedMonument.district}, गुजरात\n• मुख्य विशेषता: ${selectedMonument.shortDesc}`,
+          gu: `📚 વિદ્યાર્થી અભ્યાસ નોંધ:\n• સ્થળ: ${selectedMonument.nameGujarati}\n• સમયગાળો: ${selectedMonument.period}\n• શૈલી: ${selectedMonument.style}\n• જિલ્લો: ${selectedMonument.district}, ગુજરાત\n• મુખ્ય વિશેષતા: ${selectedMonument.shortDesc}`
+        };
       }
-      // 8. Inscriptions & Related sites
-      else if (q.includes("inscription") || q.includes("script") || q.includes("shilalekh") || q.includes("related")) {
-        setChatResponse(`📜 Epigraphs & Connections: ${selectedMonument.inscriptionRecord}. Connected to Gujarat's royal pilgrimage corridor alongside Patan, Modhera, and Dwarka.`);
-      }
-      // 9. Audio command
-      else if (q.includes("audio") || q.includes("speak") || q.includes("listen") || q.includes("sunao") || q.includes("voice")) {
-        playAudioGuide(selectedMonument, audioLang);
-        setChatResponse(`🔊 Playing native audio narration for ${selectedMonument.name} in ${audioLang === "gu" ? "Gujarati (ગુજરાતી)" : audioLang === "hi" ? "Hindi" : "English"}...`);
-      }
-      // 10. General fallback answer
+      // 8. General fallback answer
       else {
-        setChatResponse(`🏛️ Heritage Archive Insight: ${selectedMonument.name} (${selectedMonument.nameGujarati}) is documented under ${selectedMonument.category} in ${selectedMonument.city}. ${selectedMonument.shortDesc} ${selectedMonument.significance}`);
+        responseData = {
+          en: `🏛️ Heritage Archive Insight: ${selectedMonument.name} (${selectedMonument.nameGujarati}) is documented under ${selectedMonument.category} in ${selectedMonument.city}. ${selectedMonument.shortDesc} Inscription Record: ${selectedMonument.inscriptionRecord}`,
+          hi: `🏛️ अभिलेखीय विवरण: ${selectedMonument.name} गुजरात के ${selectedMonument.city} में स्थित एक महत्वपूर्ण धरोहर है। ${selectedMonument.shortDesc} शिलालेख साक्ष्य: ${selectedMonument.inscriptionRecord}`,
+          gu: `🏛️ દસ્તાવેજી વિગત: ${selectedMonument.nameGujarati} ગુજરાતના ${selectedMonument.city}માં આવેલું એક અતિ મહત્વનું સ્થાપત્ય છે. ${selectedMonument.shortDesc} શિલાલેખ વિગત: ${selectedMonument.inscriptionRecord}`
+        };
       }
+
+      setChatResponse(responseData);
       setIsAiLoading(false);
-    }, 400);
+    }, 350);
   };
 
   // Field Ingestion Submit
@@ -930,7 +964,6 @@ export default function Home() {
       {/* ===================== SUBPAGE 1: HOME ===================== */}
       {activePage === "home" && (
         <main className="animate-fadeIn flex-1">
-          {/* HERO SECTION WITH TRANSPARENT HERITAGE STEPWELL BACKGROUND */}
           <section className="relative min-h-[540px] flex items-center justify-center text-center px-4 sm:px-8 py-20 overflow-hidden">
             <div 
               className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105"
@@ -938,7 +971,6 @@ export default function Home() {
                 backgroundImage: `url('https://upload.wikimedia.org/wikipedia/commons/4/4e/Rani_Ki_Vav%2C_Above_View.JPG')`
               }}
             />
-            {/* Walnut-to-Sage Transparent Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-[#24170f]/92 via-[#2d2017]/84 to-[#34463a]/90" />
 
             <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
@@ -972,7 +1004,6 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Quick Metrics */}
           <section className="max-w-6xl mx-auto px-4 sm:px-8 -mt-10 relative z-20">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-4 rounded-2xl border border-[#e8dfd5] shadow-lg">
               <div className="p-3 text-center border-r border-[#f0ebe3]">
@@ -994,7 +1025,6 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Featured Highlights (Only 3 top sites for clean homepage) */}
           <section className="max-w-6xl mx-auto px-4 sm:px-8 py-14">
             <div className="flex items-center justify-between mb-8">
               <div>
@@ -1047,7 +1077,6 @@ export default function Home() {
               <p className="text-xs text-[#5f7366] mt-1">Explore all documented architectural stepwells, temples, citadels, and Harappan settlements.</p>
             </div>
 
-            {/* Search input */}
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#b45309]" />
               <input 
@@ -1060,7 +1089,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Category Filter Pills */}
           <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 scrollbar-none">
             {["all", "Stepwells", "Temples", "Forts & Palaces", "Archaeological Sites", "Historical Places"].map(cat => (
               <button
@@ -1077,7 +1105,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Grid of all 12 monuments with original images */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredMonuments.map((monument) => (
               <div 
@@ -1187,7 +1214,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Monument Selector Dropdown */}
             <div className="flex items-center gap-2">
               <select 
                 value={selectedMonument.id}
@@ -1215,7 +1241,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 3D Viewport Box */}
           <div className="bg-[#18110b] rounded-3xl p-4 border border-[#38271a] shadow-2xl relative">
             <div className="h-[460px] sm:h-[520px] w-full rounded-2xl overflow-hidden relative border border-[#2d1e13] bg-[#120c08] flex items-center justify-center">
               <canvas ref={canvasRef} className="w-full h-full cursor-grab active:cursor-grabbing block" />
@@ -1228,7 +1253,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Monument Info Overlay Under Canvas */}
             <div className="mt-4 p-4 bg-[#20150d] rounded-2xl border border-[#38271a] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[#fbf8f3]">
               <div>
                 <h3 className="font-serif font-bold text-lg text-[#faf8f4]">{selectedMonument.name}</h3>
@@ -1509,7 +1533,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* INTERACTIVE PROMPT CHIPS & SMART AI ASSISTANT */}
+            {/* INTERACTIVE PROMPT CHIPS & SMART AI ASSISTANT WITH MULTILINGUAL RESPONDER */}
             <div className="bg-white border border-[#e4ded0] rounded-2xl p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <Bot className="w-5 h-5 text-[#f59e0b]" />
@@ -1518,7 +1542,6 @@ export default function Home() {
                 </h3>
               </div>
               
-              {/* Quick Click Prompts */}
               <div className="flex flex-wrap gap-2 mb-4">
                 {[
                   "Who built it and why?",
@@ -1537,7 +1560,6 @@ export default function Home() {
                 ))}
               </div>
 
-              {/* Chat Input with Enter Key Support */}
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -1566,7 +1588,6 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* AI Loading State */}
               {isAiLoading && (
                 <div className="mt-4 p-4 bg-[#f8f5ed] border border-[#e8dfcf] rounded-xl text-xs text-[#5e7065] flex items-center gap-2.5 animate-pulse">
                   <Loader2 className="w-4 h-4 animate-spin text-[#f59e0b]" />
@@ -1574,26 +1595,43 @@ export default function Home() {
                 </div>
               )}
 
-              {/* AI Response Box with Audio Listen Action */}
+              {/* AI Response Box with GUJARATI, HINDI, and ENGLISH Audio Narration */}
               {chatResponse && !isAiLoading && (
                 <div className="mt-4 p-4 bg-[#f8f5ed] border border-[#e8dfcf] rounded-xl text-xs sm:text-sm text-[#2c1f15] leading-relaxed flex flex-col gap-2.5 shadow-sm">
-                  <div className="flex items-center justify-between border-b border-[#e4ded0] pb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#e4ded0] pb-2 gap-2">
                     <span className="font-bold text-[#b45309] flex items-center gap-1.5 text-xs">
                       <Sparkles className="w-4 h-4 text-[#f59e0b]" /> AI Archive Intelligence
                     </span>
-                    <button
-                      onClick={() => {
-                        const utterance = new SpeechSynthesisUtterance(chatResponse);
-                        utterance.rate = 0.95;
-                        window.speechSynthesis.speak(utterance);
-                      }}
-                      className="text-[11px] text-[#b45309] hover:underline flex items-center gap-1 font-semibold"
-                    >
-                      <Volume2 className="w-3.5 h-3.5" /> Listen Response
-                    </button>
+
+                    {/* AI Response Language Selector & Listen Button */}
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={aiLang}
+                        onChange={(e) => setAiLang(e.target.value as "gu" | "hi" | "en")}
+                        className="bg-white border border-[#d6cec4] text-xs font-semibold text-[#2e1f14] rounded-lg px-2 py-1 focus:outline-none focus:border-[#f59e0b] cursor-pointer"
+                      >
+                        <option value="gu">🏛️ ગુજરાતી (Gujarati)</option>
+                        <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+                        <option value="en">🇬🇧 English</option>
+                      </select>
+
+                      <button
+                        onClick={() => playAiResponse(aiLang)}
+                        className={`text-xs px-3 py-1 rounded-lg font-bold flex items-center gap-1.5 transition ${
+                          isAiSpeaking 
+                            ? "bg-amber-600 text-white animate-pulse" 
+                            : "bg-[#f59e0b] text-[#24170f] hover:bg-[#fbbf24]"
+                        }`}
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                        {isAiSpeaking ? "Speaking..." : "Listen Response"}
+                      </button>
+                    </div>
                   </div>
-                  <div className="whitespace-pre-line text-[#3d2c20]">
-                    {chatResponse}
+
+                  {/* Dynamic Response Text in Selected Language */}
+                  <div className="whitespace-pre-line text-[#3d2c20] font-sans text-xs sm:text-sm leading-relaxed">
+                    {chatResponse[aiLang]}
                   </div>
                 </div>
               )}
