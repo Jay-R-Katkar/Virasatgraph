@@ -26,7 +26,9 @@ import {
   Send,
   Home as HomeIcon,
   Grid,
-  Info
+  Info,
+  Bot,
+  Loader2
 } from "lucide-react";
 
 interface Monument {
@@ -331,9 +333,10 @@ export default function Home() {
   const [audioLang, setAudioLang] = useState<"gu" | "hi" | "en">("gu");
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
-  // AI Q&A State
+  // AI Q&A State with Instant Intelligent Answers & Loading State
   const [chatInput, setChatInput] = useState("");
   const [chatResponse, setChatResponse] = useState<string | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   // 3D Canvas Ref & Controls
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -422,7 +425,7 @@ export default function Home() {
     window.speechSynthesis.speak(utterance);
   };
 
-  // High-Fidelity 3D Viewport in Three.js (Procedural & Unique for each type)
+  // Three.js 3D Viewport in Walnut Brown & Amber Glow
   useEffect(() => {
     if (activePage !== "3d_twins" || !canvasRef.current || !selectedMonument) return;
 
@@ -685,20 +688,58 @@ export default function Home() {
     };
   }, [activePage, selectedMonument, wireframe]);
 
-  // AI Prompt Chips Handler
-  const handleAIPrompt = (prompt: string) => {
-    if (!selectedMonument) return;
-    if (prompt.includes("simple language")) {
-      setChatResponse(`${selectedMonument.name} is an architectural marvel in ${selectedMonument.city}, Gujarat. Built around ${selectedMonument.period}, it showcases extraordinary craftsmanship designed for cultural reverence and communal harmony.`);
-    } else if (prompt.includes("historically important")) {
-      setChatResponse(`Historical Significance: ${selectedMonument.significance} ${selectedMonument.fullHistory}`);
-    } else if (prompt.includes("architecture")) {
-      setChatResponse(`Architectural Highlights: Built in ${selectedMonument.style}. ${selectedMonument.architectureDetails}`);
-    } else if (prompt.includes("student")) {
-      setChatResponse(`Quick Study Guide for Students: Site: ${selectedMonument.name} | Era: ${selectedMonument.period} | Style: ${selectedMonument.style} | District: ${selectedMonument.district}. Key takeaway: Represents world-class Indian masonry, water-harvesting, and dynastic history.`);
-    } else {
-      setChatResponse(`Inscriptions & Records: ${selectedMonument.inscriptionRecord}. Related heritage sites include Patan Rani ki Vav, Adalaj, and Modhera along Gujarat's cultural corridor.`);
-    }
+  // SMART AI ASSISTANT NATURAL LANGUAGE RESPONDER
+  const handleAIPrompt = (query: string) => {
+    if (!selectedMonument || !query.trim()) return;
+    setIsAiLoading(true);
+    setChatResponse(null);
+
+    const q = query.toLowerCase();
+
+    setTimeout(() => {
+      // 1. Who built / Founder / Dynasty / Ruler
+      if (q.includes("who built") || q.includes("builder") || q.includes("king") || q.includes("queen") || q.includes("dynasty") || q.includes("kisne") || q.includes("banwaya") || q.includes("ruler")) {
+        setChatResponse(`🏛️ Patron & Origin: ${selectedMonument.fullHistory.split('.')[0]}. Built during the ${selectedMonument.period} under the guidance of regional rulers to serve cultural, spiritual, and communal welfare.`);
+      }
+      // 2. When / Period / Era / Century / Age
+      else if (q.includes("when") || q.includes("year") || q.includes("period") || q.includes("century") || q.includes("age") || q.includes("old") || q.includes("kab") || q.includes("date")) {
+        setChatResponse(`⏳ Chronology & Era: ${selectedMonument.name} dates back to ${selectedMonument.period}. It represents centuries of architectural evolution in ${selectedMonument.district}, Gujarat.`);
+      }
+      // 3. Where / Location / City / Reach / Map
+      else if (q.includes("where") || q.includes("location") || q.includes("city") || q.includes("district") || q.includes("kahan") || q.includes("reach") || q.includes("place")) {
+        setChatResponse(`📍 Geographical Location: ${selectedMonument.name} is situated in ${selectedMonument.city}, ${selectedMonument.district} district, Gujarat, India. Exact GPS Telemetry: ${selectedMonument.coordinates.lat.toFixed(4)}°N, ${selectedMonument.coordinates.lng.toFixed(4)}°E.`);
+      }
+      // 4. Architecture / Design / Stone / Pillars
+      else if (q.includes("architecture") || q.includes("style") || q.includes("design") || q.includes("stone") || q.includes("pillar") || q.includes("tier") || q.includes("stair") || q.includes("carving") || q.includes("vastu")) {
+        setChatResponse(`🎨 Architectural Mastery: Built in ${selectedMonument.style}. ${selectedMonument.architectureDetails}`);
+      }
+      // 5. Why important / Significance / UNESCO
+      else if (q.includes("why") || q.includes("important") || q.includes("significance") || q.includes("unesco") || q.includes("special") || q.includes("khas") || q.includes("famous")) {
+        setChatResponse(`⭐ Cultural Importance: ${selectedMonument.significance}`);
+      }
+      // 6. Simple language explanation
+      else if (q.includes("simple language") || q.includes("explain") || q.includes("easy") || q.includes("aasan")) {
+        setChatResponse(`💡 Simple Overview: ${selectedMonument.name} (${selectedMonument.nameGujarati}) is a treasured heritage site in ${selectedMonument.city}, Gujarat. Built in ${selectedMonument.period}, it showcases ancient craftsmanship, community water-management, and deep spiritual traditions.`);
+      }
+      // 7. Student study summary
+      else if (q.includes("student") || q.includes("summarize") || q.includes("exam") || q.includes("notes") || q.includes("short")) {
+        setChatResponse(`📚 Student Quick Notes:\n• Monument: ${selectedMonument.name} (${selectedMonument.nameGujarati})\n• Era: ${selectedMonument.period}\n• Style: ${selectedMonument.style}\n• District: ${selectedMonument.district}, Gujarat\n• Key Takeaway: ${selectedMonument.shortDesc}`);
+      }
+      // 8. Inscriptions & Related sites
+      else if (q.includes("inscription") || q.includes("script") || q.includes("shilalekh") || q.includes("related")) {
+        setChatResponse(`📜 Epigraphs & Connections: ${selectedMonument.inscriptionRecord}. Connected to Gujarat's royal pilgrimage corridor alongside Patan, Modhera, and Dwarka.`);
+      }
+      // 9. Audio command
+      else if (q.includes("audio") || q.includes("speak") || q.includes("listen") || q.includes("sunao") || q.includes("voice")) {
+        playAudioGuide(selectedMonument, audioLang);
+        setChatResponse(`🔊 Playing native audio narration for ${selectedMonument.name} in ${audioLang === "gu" ? "Gujarati (ગુજરાતી)" : audioLang === "hi" ? "Hindi" : "English"}...`);
+      }
+      // 10. General fallback answer
+      else {
+        setChatResponse(`🏛️ Heritage Archive Insight: ${selectedMonument.name} (${selectedMonument.nameGujarati}) is documented under ${selectedMonument.category} in ${selectedMonument.city}. ${selectedMonument.shortDesc} ${selectedMonument.significance}`);
+      }
+      setIsAiLoading(false);
+    }, 400);
   };
 
   // Field Ingestion Submit
@@ -1468,18 +1509,23 @@ export default function Home() {
               </div>
             </div>
 
-            {/* INTERACTIVE PROMPT CHIPS */}
+            {/* INTERACTIVE PROMPT CHIPS & SMART AI ASSISTANT */}
             <div className="bg-white border border-[#e4ded0] rounded-2xl p-6 shadow-sm">
-              <h3 className="text-xs font-bold tracking-wider uppercase text-[#b45309] mb-3">
-                Ask Heritage AI Assistant
-              </h3>
+              <div className="flex items-center gap-2 mb-3">
+                <Bot className="w-5 h-5 text-[#f59e0b]" />
+                <h3 className="text-xs font-bold tracking-wider uppercase text-[#b45309]">
+                  Ask Heritage AI Assistant
+                </h3>
+              </div>
+              
+              {/* Quick Click Prompts */}
               <div className="flex flex-wrap gap-2 mb-4">
                 {[
+                  "Who built it and why?",
                   "Explain this monument in simple language.",
-                  "Why is this monument historically important?",
                   "What is special about its architecture?",
                   "Summarize its history for a student.",
-                  "What other heritage sites are related?"
+                  "Where is it located?"
                 ].map((chip) => (
                   <button
                     key={chip}
@@ -1491,27 +1537,62 @@ export default function Home() {
                 ))}
               </div>
 
+              {/* Chat Input with Enter Key Support */}
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
-                  placeholder={`Ask about ${selectedMonument.name}...`}
-                  className="flex-1 bg-[#f9f8f4] border border-[#dcd6c6] rounded-xl px-4 py-2 text-xs sm:text-sm text-[#2c1f15] focus:outline-none focus:border-[#f59e0b]"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && chatInput.trim()) {
+                      handleAIPrompt(chatInput);
+                      setChatInput("");
+                    }
+                  }}
+                  placeholder={`Ask anything about ${selectedMonument.name}... (Press Enter)`}
+                  className="flex-1 bg-[#f9f8f4] border border-[#dcd6c6] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-[#2c1f15] focus:outline-none focus:border-[#f59e0b]"
                 />
                 <button 
-                  onClick={() => { if (chatInput) { handleAIPrompt(chatInput); setChatInput(""); } }}
-                  className="bg-[#24170f] hover:bg-[#382619] text-[#fbbf24] px-4 py-2 rounded-xl transition"
+                  onClick={() => {
+                    if (chatInput.trim()) {
+                      handleAIPrompt(chatInput);
+                      setChatInput("");
+                    }
+                  }}
+                  disabled={isAiLoading || !chatInput.trim()}
+                  className="bg-[#24170f] hover:bg-[#382619] disabled:opacity-50 text-[#fbbf24] px-4 py-2 rounded-xl transition flex items-center justify-center cursor-pointer"
                 >
-                  <Send className="w-4 h-4" />
+                  {isAiLoading ? <Loader2 className="w-4 h-4 animate-spin text-[#fbbf24]" /> : <Send className="w-4 h-4" />}
                 </button>
               </div>
 
-              {chatResponse && (
-                <div className="mt-4 p-4 bg-[#f8f5ed] border border-[#e8dfcf] rounded-xl text-xs sm:text-sm text-[#2c1f15] leading-relaxed flex items-start gap-2.5">
-                  <Sparkles className="w-5 h-5 text-[#f59e0b] shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="block text-[#2e1f14] mb-1">Archive Insight:</strong>
+              {/* AI Loading State */}
+              {isAiLoading && (
+                <div className="mt-4 p-4 bg-[#f8f5ed] border border-[#e8dfcf] rounded-xl text-xs text-[#5e7065] flex items-center gap-2.5 animate-pulse">
+                  <Loader2 className="w-4 h-4 animate-spin text-[#f59e0b]" />
+                  <span>Heritage AI is querying archives and epigraph records for {selectedMonument.name}...</span>
+                </div>
+              )}
+
+              {/* AI Response Box with Audio Listen Action */}
+              {chatResponse && !isAiLoading && (
+                <div className="mt-4 p-4 bg-[#f8f5ed] border border-[#e8dfcf] rounded-xl text-xs sm:text-sm text-[#2c1f15] leading-relaxed flex flex-col gap-2.5 shadow-sm">
+                  <div className="flex items-center justify-between border-b border-[#e4ded0] pb-2">
+                    <span className="font-bold text-[#b45309] flex items-center gap-1.5 text-xs">
+                      <Sparkles className="w-4 h-4 text-[#f59e0b]" /> AI Archive Intelligence
+                    </span>
+                    <button
+                      onClick={() => {
+                        const utterance = new SpeechSynthesisUtterance(chatResponse);
+                        utterance.rate = 0.95;
+                        window.speechSynthesis.speak(utterance);
+                      }}
+                      className="text-[11px] text-[#b45309] hover:underline flex items-center gap-1 font-semibold"
+                    >
+                      <Volume2 className="w-3.5 h-3.5" /> Listen Response
+                    </button>
+                  </div>
+                  <div className="whitespace-pre-line text-[#3d2c20]">
                     {chatResponse}
                   </div>
                 </div>
