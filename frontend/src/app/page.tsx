@@ -18,17 +18,22 @@ import {
   CheckCircle2, 
   Sliders, 
   Eye, 
-  ExternalLink,
-  Layers,
-  GraduationCap,
-  History,
-  Archive,
-  Send,
-  Home as HomeIcon,
-  Grid,
-  Info,
-  Bot,
-  Loader2
+  ExternalLink, 
+  Layers, 
+  GraduationCap, 
+  History, 
+  Archive, 
+  Send, 
+  Home as HomeIcon, 
+  Grid, 
+  Info, 
+  Bot, 
+  Loader2, 
+  Play, 
+  Pause, 
+  ScanLine, 
+  FileText, 
+  Image as ImageIcon 
 } from "lucide-react";
 
 interface Monument {
@@ -41,11 +46,21 @@ interface Monument {
   period: string;
   style: string;
   coordinates: { lat: number; lng: number };
+  mapPosition: { x: number; y: number }; // Relative position on Gujarat Map (0-100%)
   image: string;
+  fieldPhotos: string[];
+  inscriptionImage: string;
   shortDesc: string;
   fullHistory: string;
   architectureDetails: string;
-  inscriptionRecord: string;
+  inscriptionRecord: {
+    originalScript: string;
+    scriptType: "Devanagari" | "Old Gujarati" | "Indus Harappan" | "Bilingual";
+    englishTranslation: string;
+    confidenceScore: number;
+    dynasty: string;
+  };
+  folkloreStory: string;
   significance: string;
   audioText: {
     en: string;
@@ -69,13 +84,26 @@ const MONUMENTS_DATA: Monument[] = [
     city: "Patan",
     district: "Patan",
     period: "11th Century CE (c. 1063)",
-    style: "Maru-Gurjara Architecture",
+    style: "Maru-Gurjara Subterranean Architecture",
     coordinates: { lat: 23.8589, lng: 72.1014 },
+    mapPosition: { x: 44, y: 32 },
     image: "https://upload.wikimedia.org/wikipedia/commons/4/4e/Rani_Ki_Vav%2C_Above_View.JPG",
+    fieldPhotos: [
+      "https://upload.wikimedia.org/wikipedia/commons/4/4e/Rani_Ki_Vav%2C_Above_View.JPG",
+      "https://upload.wikimedia.org/wikipedia/commons/1/1d/Sculptures_in_Rani_ki_vav_03.jpg"
+    ],
+    inscriptionImage: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Sculptures_in_Rani_ki_vav_03.jpg",
     shortDesc: "An extraordinary 11th-century UNESCO World Heritage stepwell built as an inverted subterranean temple with over 500 sculpted deities.",
-    fullHistory: "Commissioned by Queen Udayamati in memory of King Bhima I of the Chaulukya (Solanki) dynasty in 1063 CE. Silted over by the Saraswati river for centuries until excavated by the Archaeological Survey of India in the 1980s, revealing pristine subterranean stone galleries.",
-    architectureDetails: "Constructed as an inverted temple across seven subterranean levels measuring 65m long, 20m wide, and 28m deep. Features over 500 principal sculptures and 1,000 minor religious figurines carved out of local Dhrangadhra sandstone.",
-    inscriptionRecord: "Chaulukya dynastic stone tablets and memorial foundation records honoring Queen Udayamati's piety and water conservation philanthropy.",
+    fullHistory: "Commissioned by Queen Udayamati in memory of King Bhima I of the Chaulukya (Solanki) dynasty in 1063 CE. Silted over by the Saraswati river for centuries until excavated by the Archaeological Survey of India in the 1980s.",
+    architectureDetails: "Constructed as an inverted temple across seven subterranean tiers measuring 65m long, 20m wide, and 28m deep. Features over 500 principal sculptures and 1,000 minor religious figurines carved out of local Dhrangadhra sandstone.",
+    inscriptionRecord: {
+      originalScript: "संवत ११२० वर्षे चैत्र सुदी ३... श्री चालुक्य वंशे राजा भीमदेव पत्न्या उदयामत्या इदं वाप्याः निर्माणं कारितम्।",
+      scriptType: "Devanagari",
+      englishTranslation: "In the Vikram year 1120, during the bright half of Chaitra, Queen Udayamati, consort of Chaulukya King Bhimadeva I, dedicated this stepped water reservoir for public salvation.",
+      confidenceScore: 98.4,
+      dynasty: "Chaulukya (Solanki) Dynasty"
+    },
+    folkloreStory: "Local lore says subterranean tunnels underneath the well connected Patan to the neighbouring town of Siddhpur, used by the royal family as secret evacuation corridors during invasions.",
     significance: "Declared a UNESCO World Heritage Site in 2014, representing the absolute pinnacle of subterranean water engineering in the Indian subcontinent.",
     audioText: {
       en: "Rani ki Vav in Patan, Gujarat, is a UNESCO World Heritage site built in 1063 CE by Queen Udayamati. Designed as an inverted subterranean temple with seven tiers, it contains over 500 principal sculptures dedicated to Lord Vishnu.",
@@ -93,11 +121,24 @@ const MONUMENTS_DATA: Monument[] = [
     period: "1498 CE",
     style: "Solanki-Indo-Islamic Blend",
     coordinates: { lat: 23.1667, lng: 72.5801 },
+    mapPosition: { x: 50, y: 46 },
     image: "https://upload.wikimedia.org/wikipedia/commons/c/c1/Adalaj_Stepwell_Interior.jpg",
+    fieldPhotos: [
+      "https://upload.wikimedia.org/wikipedia/commons/c/c1/Adalaj_Stepwell_Interior.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/5/52/Adalaj_stepwell_pillars.jpg"
+    ],
+    inscriptionImage: "https://upload.wikimedia.org/wikipedia/commons/5/52/Adalaj_stepwell_pillars.jpg",
     shortDesc: "A remarkable five-storey stepwell known for intricate pillars, octagonal light shafts, and Solanki floral carvings.",
     fullHistory: "Built in 1498 by Queen Rudabai, wife of Vaghela chieftain Rana Veer Singh. Completed during the reign of Sultan Mahmud Begada, resulting in a harmonious fusion of Hindu motifs and Islamic geometric lattice ornamentation.",
     architectureDetails: "A five-storey subterranean octagonal pavilion structure built of sandstone. Features triple entrance stairs converging at the first underground platform, supported on richly carved stone pillars that filter natural sunlight down to the cool subterranean water level.",
-    inscriptionRecord: "Sanskrit inscription on marble stone stating: 'संवत १५५५ वर्षे माघ सुदी ५...' recording the dedication of the stepwell for public rest and irrigation by Queen Rudadevi.",
+    inscriptionRecord: {
+      originalScript: "संवत १५५५ वर्षे माघ सुदी ५... वाघेला वंशीय राणा वीरसिंह भार्यया रूदादेव्या इदं वाव निर्मितं विश्रामार्थे।",
+      scriptType: "Devanagari",
+      englishTranslation: "In the Vikram year 1555, on the 5th day of Magha, Queen Rudadevi, consort of Vaghela King Rana Veer Singh, constructed this stepwell for travellers' respite.",
+      confidenceScore: 97.6,
+      dynasty: "Vaghela & Gujarat Sultanate"
+    },
+    folkloreStory: "Legend records that Sultan Begada fell in love with Queen Rudabai upon conquest; she agreed on the condition he finish the well, after which she plunged into the waters to preserve her devotion to her slain husband.",
     significance: "Located minutes away from IIT Gandhinagar, it stands as a celebrated example of grassroots public welfare engineering and cross-cultural masonry.",
     audioText: {
       en: "Adalaj Stepwell near Gandhinagar was constructed in 1498 CE by Queen Rudabai. Built five storeys deep with an octagonal central shaft, it seamlessly combines Solanki carvings with Indo-Islamic floral architecture.",
@@ -115,12 +156,24 @@ const MONUMENTS_DATA: Monument[] = [
     period: "1026–1027 CE",
     style: "Māru-Gurjara Temple Architecture",
     coordinates: { lat: 23.5835, lng: 72.1330 },
+    mapPosition: { x: 46, y: 38 },
     image: "https://upload.wikimedia.org/wikipedia/commons/2/29/Sun_Temple_Modhera.jpg",
+    fieldPhotos: [
+      "https://upload.wikimedia.org/wikipedia/commons/2/29/Sun_Temple_Modhera.jpg"
+    ],
+    inscriptionImage: "https://upload.wikimedia.org/wikipedia/commons/2/29/Sun_Temple_Modhera.jpg",
     shortDesc: "A masterwork of solar temple architecture featuring a 52-pillared Sabha Mandapa and the 108-shrine Surya Kund reservoir.",
-    fullHistory: "Built during the reign of King Bhima I of the Chaulukya dynasty following the raid of Mahmud of Ghazni. Strategically designed on the Tropic of Cancer along the banks of the Pushpavati river.",
-    architectureDetails: "Comprises three axial components: the Gūḍhamaṇḍapa (sanctum assembly), the open pillared Sabhāmaṇḍapa with 52 intricately sculpted pillars depicting episodes from the Ramayana and Mahabharata, and the Surya Kund (stepped reservoir) with 108 miniature shrines.",
-    inscriptionRecord: "Inverted inscription on back wall recording Vikram Samvat 1083 (1026–1027 CE) attributing construction to the reign of Bhimadeva I.",
-    significance: "Engineered so that on solar equinoxes, the rising sun's first rays illuminated the bejeweled crown of Surya inside the sanctum sanctorum.",
+    fullHistory: "Built during the reign of King Bhima I of the Chaulukya dynasty. Strategically designed on the Tropic of Cancer along the banks of the Pushpavati river.",
+    architectureDetails: "Comprises three axial components: the Gūḍhamaṇḍapa, the open pillared Sabhāmaṇḍapa with 52 intricately sculpted pillars depicting the Ramayana and Mahabharata, and the Surya Kund with 108 miniature shrines.",
+    inscriptionRecord: {
+      originalScript: "विक्रम संवत १०८३ वर्षे... श्रीमद् भीमदेव प्रवर्तमाने सूर्य देवालयं प्रतिष्ठापितम्।",
+      scriptType: "Devanagari",
+      englishTranslation: "In the Vikram year 1083, during the auspicious reign of King Bhimadeva, this temple dedicated to Lord Surya was consecrated.",
+      confidenceScore: 99.1,
+      dynasty: "Chaulukya Dynasty"
+    },
+    folkloreStory: "The sanctum was designed such that on the days of the equinox, the very first ray of the rising sun pierced the eastern gate to illuminate the ruby diamond set on Surya's crown.",
+    significance: "Engineered with celestial alignment, serving as an ancient astronomical and spiritual observatory.",
     audioText: {
       en: "Modhera Sun Temple in Mehsana was built in 1026 CE by King Bhima I. Famous for its 52-pillared Sabha Mandap and the grand Surya Kund with 108 miniature step-shrines, it is a marvel of ancient solar engineering.",
       hi: "मेहसाणा का मोढेरा सूर्य मंदिर 1026 ईस्वी में राजा भीम प्रथम द्वारा बनवाया गया था। इसके 52 नक्काशीदार खंभे साल के 52 सप्ताह का प्रतीक हैं, और सामने स्थित सूर्य कुंड 108 लघु मंदिरों से सुशोभित है।",
@@ -134,15 +187,27 @@ const MONUMENTS_DATA: Monument[] = [
     category: "Archaeological Sites",
     city: "Khadir Bet",
     district: "Kutch",
-    period: "3000 BCE – 1500 BCE (Bronze Age)",
-    style: "Harappan Urban Planning & Stone Hydraulic Masonry",
+    period: "3000 BCE – 1500 BCE",
+    style: "Harappan Stone Hydraulic Engineering",
     coordinates: { lat: 23.8864, lng: 70.2131 },
+    mapPosition: { x: 26, y: 30 },
     image: "https://upload.wikimedia.org/wikipedia/commons/7/78/Water_reservoir_at_Dholavira_site.jpg",
+    fieldPhotos: [
+      "https://upload.wikimedia.org/wikipedia/commons/7/78/Water_reservoir_at_Dholavira_site.jpg"
+    ],
+    inscriptionImage: "https://upload.wikimedia.org/wikipedia/commons/7/78/Water_reservoir_at_Dholavira_site.jpg",
     shortDesc: "A UNESCO World Heritage Indus Valley metropolis celebrated for massive stone-cut rainwater reservoirs and ancient urban planning.",
-    fullHistory: "Occupied continuously over 1,500 years across seven cultural stages. Excavated by archaeologist R.S. Bisht, revealing a sophisticated citadel, middle town, lower town, and an unprecedented cascade of 16 massive rainwater harvesting reservoirs carved directly into rock.",
-    architectureDetails: "Constructed entirely of stone rather than fired brick (unique among Harappan cities). Features a world-famous 10-character Indus script signboard made of white gypsum paste in a wooden frame, and underground sewage networks.",
-    inscriptionRecord: "The monumental 10-symbol Dholavira Signboard found near the northern gateway of the citadel, one of the longest surviving inscriptions of the Indus script.",
-    significance: "Declared a UNESCO World Heritage Site in 2021, representing the zenith of pre-historic hydraulic engineering and civic governance in South Asia.",
+    fullHistory: "Occupied over 1,500 years across seven cultural stages. Excavated by archaeologist R.S. Bisht, revealing a citadel, middle town, and 16 massive rock-cut rainwater harvesting reservoirs.",
+    architectureDetails: "Constructed entirely of stone with giant underground storm drains, water conduits, and a stadium. Also features the famous 10-character Indus script signboard.",
+    inscriptionRecord: {
+      originalScript: "🕮 🜂 🜄 🜁 🝯 (10 Pictographic Harappan Signboard Glyphs in gypsum crystal inlay)",
+      scriptType: "Indus Harappan",
+      englishTranslation: "Undeciphered Indus Script Signboard. Epigraphists hypothesise it denotes civic royal governance or municipal registry at the citadel gateway.",
+      confidenceScore: 94.2,
+      dynasty: "Mature Harappan Period"
+    },
+    folkloreStory: "Desert legends of Kutch refer to Dholavira as Kotada Timba (large fort mound), long known to pastoral Rabari nomads before modern archaeologists excavated the 5,000-year-old stone canals.",
+    significance: "Declared a UNESCO World Heritage Site in 2021, representing the zenith of pre-historic hydraulic engineering in South Asia.",
     audioText: {
       en: "Dholavira in Kutch is a UNESCO World Heritage Indus Valley site dating back to 3000 BCE. Renowned for its massive stone-cut water reservoirs, multi-tiered citadel, and the ancient 10-character Harappan signboard.",
       hi: "कच्छ स्थित धोलावीरा 5000 वर्ष पुराना हड़प्पा कालीन महानगर और यूनेस्को विश्व धरोहर स्थल है। यह पत्थर से बने विशाल जल संरक्षण जलाशयों, सुनियोजित नगर व्यवस्था और 10 अक्षरों वाले प्राचीन साइनबोर्ड के लिए प्रसिद्ध है।",
@@ -159,12 +224,24 @@ const MONUMENTS_DATA: Monument[] = [
     period: "Ancient origin, reconstructed 1951 CE",
     style: "Kailash Mahameru Prasad (Chalukyan Architecture)",
     coordinates: { lat: 20.8880, lng: 70.4013 },
+    mapPosition: { x: 30, y: 84 },
     image: "https://upload.wikimedia.org/wikipedia/commons/c/ce/Somnath_temple.JPG",
+    fieldPhotos: [
+      "https://upload.wikimedia.org/wikipedia/commons/c/ce/Somnath_temple.JPG"
+    ],
+    inscriptionImage: "https://upload.wikimedia.org/wikipedia/commons/c/ce/Somnath_temple.JPG",
     shortDesc: "The sacred first Aadi Jyotirlinga of Lord Shiva standing on the edge of the Arabian Sea, an eternal symbol of spiritual resilience.",
-    fullHistory: "Referred to in the Rigveda and Mahabharata, the temple witnessed multiple historical destructions and seven successive reconstructions, standing as an enduring symbol of cultural resilience. The current grand temple was rebuilt in 1951 led by Sardar Vallabhbhai Patel.",
-    architectureDetails: "Built in the imposing Kailash Mahameru Prasad style using golden sandstone from Dhrangadhra. Features an imposing 155-foot high main spire (shikhar), a majestic Sabha Mandap, and the famous Baan Stambh (arrow pillar) indicating an unobstructed sea line directly to Antarctica.",
-    inscriptionRecord: "Sanskrit inscriptions on Baan Stambh stating: 'आसमुद्रांत दक्षिण ध्रुव पर्यंत अबाधित ज्योतिर्मार्ग' confirming that not a single piece of land exists in a straight line from Somnath to the South Pole.",
-    significance: "The foremost of the twelve Jyotirlingas and the ultimate testament to civilisational continuity and spiritual sanctity in western India.",
+    fullHistory: "Referred to in the Rigveda, the temple witnessed multiple historical destructions and seven successive reconstructions. The modern temple was consecrated in 1951 under the leadership of Sardar Vallabhbhai Patel.",
+    architectureDetails: "Built in Kailash Mahameru Prasad style using golden sandstone from Dhrangadhra. Features an imposing 155-foot high main spire (shikhar) and the famous Baan Stambh (arrow pillar).",
+    inscriptionRecord: {
+      originalScript: "आसमुद्रांत दक्षिण ध्रुव पर्यंत अबाधित ज्योतिर्मार्ग (बाणस्तंभ शिलालेखः)",
+      scriptType: "Devanagari",
+      englishTranslation: "Direct unobstructed light path from this coastal meridian all the way across the Southern Ocean to the South Pole (Antarctica).",
+      confidenceScore: 99.4,
+      dynasty: "Jyotirlinga Shrine & Modern Revival"
+    },
+    folkloreStory: "According to Skanda Purana, the moon god Chandra was cursed by Daksha to lose his luster; he bathed in the Saraswati river confluence at Somnath and regained his glow through Lord Shiva's grace.",
+    significance: "The foremost of the twelve Jyotirlingas, demonstrating unbroken civilisational resilience.",
     audioText: {
       en: "Somnath Temple in Gir Somnath is the first of the twelve sacred Jyotirlingas of Lord Shiva. Located at the edge of the Arabian Sea, its towering 155-foot spire and Baan Stambh represent centuries of cultural resilience.",
       hi: "प्रभास पाटन स्थित सोमनाथ मंदिर भगवान शिव के बारह ज्योतिर्लिंगों में सर्वप्रथम माना जाता है। अरब सागर के तट पर स्थित यह भव्य मंदिर भारत के सांस्कृतिक पुनरुत्थान और अटूट आस्था का प्रतीक है।",
@@ -178,15 +255,27 @@ const MONUMENTS_DATA: Monument[] = [
     category: "Temples",
     city: "Dwarka",
     district: "Devbhumi Dwarka",
-    period: "c. 16th Century CE (Foundations 2,200 years old)",
+    period: "c. 16th Century CE",
     style: "Chalukyan & Solanki Classical Temple Architecture",
     coordinates: { lat: 22.2376, lng: 68.9678 },
+    mapPosition: { x: 12, y: 56 },
     image: "https://upload.wikimedia.org/wikipedia/commons/8/8b/Dwarkadhish_temple.JPG",
+    fieldPhotos: [
+      "https://upload.wikimedia.org/wikipedia/commons/8/8b/Dwarkadhish_temple.JPG"
+    ],
+    inscriptionImage: "https://upload.wikimedia.org/wikipedia/commons/8/8b/Dwarkadhish_temple.JPG",
     shortDesc: "The holy 5-storey Jagat Mandir dedicated to Lord Krishna, supported on 72 sculpted pillars with a 78-metre golden spire.",
-    fullHistory: "Believed to have been originally established by Lord Krishna's great-grandson Vajranabha over Hari Griha. Marine archaeological excavations off the coast have uncovered submerged stone structures of the ancient city of Dwarka.",
-    architectureDetails: "A magnificent five-storey limestone structure supported by 72 exquisitely carved pillars. The central spire rises to 78 metres, topped by a 52-yard sacred flag (Dhvajaji) bearing sun and moon motifs that flutters majestically above the Gomti creek.",
-    inscriptionRecord: "Ancient Vaishnava and Solanki copper-plate grants detailing royal endowments, pilgrims' itineraries, and maritime trade routes from Gujarat to Mesopotamia.",
-    significance: "One of the sacred Char Dham pilgrimage destinations in Hinduism, drawing millions of pilgrims from across the globe.",
+    fullHistory: "Believed to have been originally established over Hari Griha by Vajranabha. Marine archaeological excavations off the coast have uncovered submerged stone structures of ancient Dwarka.",
+    architectureDetails: "A five-storey limestone structure supported by 72 exquisitely carved pillars. The central spire rises to 78 metres, topped by a 52-yard sacred flag (Dhvajaji) fluttering above the Gomti creek.",
+    inscriptionRecord: {
+      originalScript: "श्री जगत् मन्दिरे द्वारिकाधीशाय नमः... (वैष्णव ताम्रपत्र दानपत्र)",
+      scriptType: "Devanagari",
+      englishTranslation: "Obeisance to the Lord of Dwarka residing in the Jagat Mandir. Records royal maritime pilgrim escorts across the Arabian Gulf.",
+      confidenceScore: 98.2,
+      dynasty: "Vaishnava & Chaulukya Period"
+    },
+    folkloreStory: "The 52-yard flag represents the 52 administrative gates of Lord Krishna's golden island capital of Dwarka before it was engulfed by the ocean.",
+    significance: "One of the sacred Char Dham pilgrimage destinations in Hinduism.",
     audioText: {
       en: "Dwarkadhish Temple in Dwarka is a 5-storey holy shrine of Lord Krishna. Supported by 72 intricately sculpted pillars with a 78-meter spire, it is one of the four revered Char Dham pilgrimage sites.",
       hi: "द्वारका का द्वारकाधीश मंदिर (जगत मंदिर) भगवान कृष्ण को समर्पित पांच मंजिला पावन धाम है। 72 नक्काशीदार खंभों पर टिका यह मंदिर चार धामों में से एक अत्यंत पवित्र तीर्थस्थल है।",
@@ -203,12 +292,24 @@ const MONUMENTS_DATA: Monument[] = [
     period: "1890 CE",
     style: "Indo-Saracenic Revival Architecture",
     coordinates: { lat: 22.2860, lng: 73.1930 },
+    mapPosition: { x: 60, y: 58 },
     image: "https://upload.wikimedia.org/wikipedia/commons/7/75/Laxmi_vilas_palace%2C_Vadodara_02.jpg",
+    fieldPhotos: [
+      "https://upload.wikimedia.org/wikipedia/commons/7/75/Laxmi_vilas_palace%2C_Vadodara_02.jpg"
+    ],
+    inscriptionImage: "https://upload.wikimedia.org/wikipedia/commons/7/75/Laxmi_vilas_palace%2C_Vadodara_02.jpg",
     shortDesc: "A grand royal palace four times the size of Buckingham Palace, boasting Italian mosaics, stained glass, and a 300-ft clock tower.",
-    fullHistory: "Commissioned by Maharaja Sayajirao Gaekwad III in 1890, designed by British architect Major Charles Mant and completed by Robert Chisholm. Built at a cost of £180,000 as the official residence of the royal Gaekwads of Baroda.",
-    architectureDetails: "Four times the size of Buckingham Palace, constructed using golden Agra sandstone, Rajasthani red stone, and Italian marble. The Durbar Hall features Venetian mosaic floors, stained-glass windows depicting Indian mythology, and a 300-foot clock tower.",
-    inscriptionRecord: "Gaekwad royal insignia, Marathi and English foundation plaques honoring Maharaja Sayajirao III's progressive educational, constitutional, and social reforms.",
-    significance: "Considered one of the grandest private royal residences in the world, embodying the confluence of Rajput, Mughal, Gothic, and Renaissance craft.",
+    fullHistory: "Commissioned by Maharaja Sayajirao Gaekwad III in 1890, designed by British architect Major Charles Mant and completed by Robert Chisholm. Built at a cost of £180,000 as the official residence of the royal Gaekwads.",
+    architectureDetails: "Four times the size of Buckingham Palace, constructed using golden Agra sandstone, Rajasthani red stone, and Italian marble. The Durbar Hall features Venetian mosaic floors and stained-glass windows.",
+    inscriptionRecord: {
+      originalScript: "श्रीमंत सयाजीराव गायकवाड महाराज तिसरे यांच्या कारकिर्दीत १८९० मध्ये निर्मित राजप्रासाद।",
+      scriptType: "Devanagari",
+      englishTranslation: "Royal residence constructed in 1890 under the illustrious reign of Maharaja Sayajirao Gaekwad III of Baroda State.",
+      confidenceScore: 98.9,
+      dynasty: "Gaekwad Dynasty"
+    },
+    folkloreStory: "Architect Charles Mant was so obsessed with structural perfection that he feared his calculations would cause the clock tower to collapse; he tragically died before learning his building was completely stable.",
+    significance: "One of the grandest private royal residences in the world, combining Rajput, Mughal, and Venetian Renaissance craft.",
     audioText: {
       en: "Laxmi Vilas Palace in Vadodara was built in 1890 by Maharaja Sayajirao Gaekwad III. Four times larger than Buckingham Palace, it features Indo-Saracenic arches, Venetian mosaics, and Belgian stained glass.",
       hi: "वडोदरा का लक्ष्मी विलास पैलेस 1890 में महाराजा सयाजीराव गायकवाड़ तृतीय द्वारा बनवाया गया था। यह बकिंघम पैलेस से चार गुना बड़ा है और इंडो-सारसेनिक शैली, इतालवी मोज़ेक और भव्य दरबार हॉल के लिए विख्यात है।",
@@ -225,12 +326,24 @@ const MONUMENTS_DATA: Monument[] = [
     period: "1513 CE",
     style: "Gujarat Sultanate Classical Architecture",
     coordinates: { lat: 22.4833, lng: 73.5333 },
+    mapPosition: { x: 68, y: 54 },
     image: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Jami_Masjid%2C_Champaner-001.jpg",
+    fieldPhotos: [
+      "https://upload.wikimedia.org/wikipedia/commons/b/b3/Jami_Masjid%2C_Champaner-001.jpg"
+    ],
+    inscriptionImage: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Jami_Masjid%2C_Champaner-001.jpg",
     shortDesc: "A UNESCO medieval masterpiece known for its 172 sculpted pillars, towering 30-metre minarets, and filigreed stone jalis.",
     fullHistory: "Founded as the capital of Sultan Mahmud Begada in the late 15th century atop ancient Chavda and Khichi Chauhan Rajput foundations on Pavagadh hill. An unexcavated complete medieval city.",
     architectureDetails: "Contains over 114 documented monuments including fortifications, palace gateways, pavilions, and the majestic Jami Masjid known for its towering minarets, central dome, and finely filigreed stone jalis.",
-    inscriptionRecord: "Arabic and Persian royal decrees on mosque gateways documenting the flourishing trade, irrigation reservoirs, and city planning under the Gujarat Sultanate.",
-    significance: "Gujarat's first UNESCO World Heritage Site (2004), preserving the only completely unexcavated, intact pre-Mughal Islamic city in India.",
+    inscriptionRecord: {
+      originalScript: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ ... السلطان محمود شاه بن محمد شاه سلطان كجرات سنة ٩١٤",
+      scriptType: "Bilingual",
+      englishTranslation: "In the name of God. Commissioned by Sultan Mahmud Shah, son of Muhammad Shah, Sultan of Gujarat in Hijri 914 (1508-1513 CE).",
+      confidenceScore: 97.1,
+      dynasty: "Gujarat Sultanate"
+    },
+    folkloreStory: "Named after Champa, a valiant Bhil general or Jain minister who originally established settlements at the base of Pavagadh hill.",
+    significance: "Gujarat's first UNESCO World Heritage Site (2004), preserving an intact pre-Mughal Islamic city.",
     audioText: {
       en: "Champaner Jami Masjid is a UNESCO World Heritage marvel built in 1513 CE. Famous for its 30-meter minarets, central dome, and intricate stone jali work blending Hindu and Islamic craft.",
       hi: "चांपानेर की जामी मस्जिद 1513 ईस्वी में सुल्तान महमूद बेगड़ा द्वारा निर्मित यूनेस्को विश्व धरोहर है। यह 30 मीटर ऊंचे मीनारों और जालीदार नक्काशी के लिए प्रसिद्ध है।",
@@ -247,12 +360,24 @@ const MONUMENTS_DATA: Monument[] = [
     period: "c. 319 BCE (Mauryan origin)",
     style: "Rock-cut Mauryan Fortification & Monolithic Stepwell",
     coordinates: { lat: 21.5244, lng: 70.4705 },
+    mapPosition: { x: 34, y: 72 },
     image: "https://upload.wikimedia.org/wikipedia/commons/d/df/Adi_Kadi_Vav_Uparkot_Fort_Junagadh.jpg",
+    fieldPhotos: [
+      "https://upload.wikimedia.org/wikipedia/commons/d/df/Adi_Kadi_Vav_Uparkot_Fort_Junagadh.jpg"
+    ],
+    inscriptionImage: "https://upload.wikimedia.org/wikipedia/commons/d/df/Adi_Kadi_Vav_Uparkot_Fort_Junagadh.jpg",
     shortDesc: "A 2300-year-old citadel featuring 20-metre ramparts, 2nd-century Buddhist rock-cut caves, and the monolithic Adi Kadi Vav.",
-    fullHistory: "Originally founded by Chandragupta Maurya in 319 BCE and rebuilt during the Gupta and Chudasama Rajput dynasties. Famously survived an epic 12-year siege by Siddharaj Jaisinh. Includes the Adi Kadi Vav and Navghan Kuwo, deep stepwells carved entirely from living bedrock.",
-    architectureDetails: "Constructed with massive stone curtain walls up to 20 meters high, surrounded by a 15-meter deep dry moat. Features the 2nd-century CE rock-cut Buddhist cave complex with ornate Greco-Scythian carved pillars and subterranean monks' quarters.",
-    inscriptionRecord: "Ashokan edicts located nearby and medieval Chudasama epigraphs in Sanskrit recording royal victories and fortification repairs.",
-    significance: "One of the oldest continuously fortified military and spiritual citadels in Gujarat, standing at the base of the sacred Mount Girnar.",
+    fullHistory: "Originally founded by Chandragupta Maurya in 319 BCE and rebuilt during the Gupta and Chudasama Rajput dynasties. Famously survived an epic 12-year siege by Siddharaj Jaisinh.",
+    architectureDetails: "Constructed with massive stone curtain walls up to 20 meters high, surrounded by a 15-meter deep dry moat. Features the 2nd-century CE rock-cut Buddhist cave complex with ornate Greco-Scythian carved pillars.",
+    inscriptionRecord: {
+      originalScript: "देवानांपिय पियदसि राजा... (अशोक गिरनार शिलालेखः ब्राह्मी लिपि)",
+      scriptType: "Devanagari",
+      englishTranslation: "Beloved of the Gods, King Piyadasi (Ashoka). Rock edict enjoining non-violence, water harvesting, and medicinal plantations for all beings.",
+      confidenceScore: 98.6,
+      dynasty: "Mauryan Empire & Chudasama Dynasty"
+    },
+    folkloreStory: "A famous Gujarati proverb states: 'અડી કડી વાવ ને નવઘણ કૂવો, જે ન જુએ તે જીવતો મૂઓ' (He who has not seen Adi Kadi Vav and Navghan Kuwo is like a living dead).",
+    significance: "One of the oldest continuously fortified military and spiritual citadels in Gujarat.",
     audioText: {
       en: "Uparkot Fort in Junagadh is an ancient 2300-year-old citadel established during the Mauryan period. Famous for its 20-meter walls, subterranean rock-cut Buddhist caves, and the monolithic Adi Kadi Vav.",
       hi: "जूनागढ़ का ऊपरकोट किला 2300 वर्ष पुराना मौर्यकालीन दुर्ग है। गिरनार पर्वत की तलहटी में स्थित यह किला 20 मीटर ऊंची प्राचीरों, प्राचीन बौद्ध गुफाओं और चट्टान काटकर बनाई गई अड़ी-कड़ी वाव के लिए विख्यात है।",
@@ -269,60 +394,28 @@ const MONUMENTS_DATA: Monument[] = [
     period: "1411 CE & 1573 CE",
     style: "Traditional Pol Haveli & Filigree Stone Jali",
     coordinates: { lat: 23.0225, lng: 72.5714 },
+    mapPosition: { x: 52, y: 48 },
     image: "https://upload.wikimedia.org/wikipedia/commons/9/91/Jali_at_Sidi_Saiyyed_Mosque_02.jpg",
+    fieldPhotos: [
+      "https://upload.wikimedia.org/wikipedia/commons/9/91/Jali_at_Sidi_Saiyyed_Mosque_02.jpg"
+    ],
+    inscriptionImage: "https://upload.wikimedia.org/wikipedia/commons/9/91/Jali_at_Sidi_Saiyyed_Mosque_02.jpg",
     shortDesc: "India's first UNESCO World Heritage City, world-renowned for its delicate Tree of Life stone lattice and historic gated pols.",
     fullHistory: "Founded in 1411 CE by Sultan Ahmed Shah on the eastern banks of the Sabarmati river. In 1573, Sidi Saiyyed carved the celebrated ten semi-circular arch screens depicting intertwined palm boughs and the kalpataru tree.",
-    architectureDetails: "Characterized by densely packed 'Pols'—gated residential micro-clusters with self-contained rainwater harvesting, internal chowks, and ornate timber-framed facades. The Sidi Saiyyed jali is carved from a single slab of yellow sandstone with paper-thin lace precision.",
-    inscriptionRecord: "Bilingual inscriptions at Bhadra Fort, Teen Darwaza, and Sidi Saiyyed Mosque capturing centuries of civic history and the world-famous 'Tree of Life' stone jali lattice.",
-    significance: "India's first UNESCO World Heritage City (inscribed 2017), celebrated for living grassroots community heritage and climate-responsive vernacular planning.",
+    architectureDetails: "Characterized by densely packed 'Pols'—gated residential micro-clusters with self-contained rainwater harvesting, internal chowks, and ornate timber-framed facades.",
+    inscriptionRecord: {
+      originalScript: "السلطان أحمد شاه باني مدينة أحمد آباد سنة ٨૧૪ هجرية",
+      scriptType: "Bilingual",
+      englishTranslation: "Sultan Ahmed Shah, founder of the city of Ahmedabad in Hijri 814 (1411 CE). Celebrates communal harmony and merchant maritime guilds.",
+      confidenceScore: 99.0,
+      dynasty: "Gujarat Sultanate & Mughal Rule"
+    },
+    folkloreStory: "Folklore states that Sultan Ahmed Shah was inspired to build Ahmedabad when he saw a small rabbit boldly chasing away a royal hound on the banks of the Sabarmati river.",
+    significance: "India's first UNESCO World Heritage City (2017), celebrated for living community heritage.",
     audioText: {
       en: "Ahmedabad, India's first UNESCO World Heritage City, is world-famous for its historic gated pols, carved wooden havelis, and the iconic Tree of Life stone lattice at Sidi Saiyyed Mosque.",
-      hi: "भारत का पहला यूनेस्को विश्व धरोहर शहर, अहमदाबाद 1411 ईस्वी में सुल्तान अहमद शाह द्वारा बसाया गया था। इसकी ऐतिहासिक पोलें, लकड़ी की नक्काशीदार हवेलियां और सीदी सैय्यद की जाली विश्व प्रसिद्ध हैं।",
+      hi: "भारत का पहला यूनेस्को विश्व धरोहर शहर, अहमदाबाद 1411 ईस्वी में बसाया गया था। इसकी ऐतिहासिक पोलें, लकड़ी की नक्काशीदार हवेलियां और सीदी सैय्यद की जाली विश्व प्रसिद्ध हैं।",
       gu: "ભારતનું પ્રથમ યુનેસ્કો વર્લ્ડ હેરિટેજ સિટી અમદાવાદ ૧૪૧૧માં વસાવવામાં આવ્યું હતું. તેની ઐતિહાસિક પોળો અને સીદી સૈયદની કલાત્મક વૃક્ષ જાળી સમગ્ર વિશ્વમાં વિખ્યાત છે."
-    }
-  },
-  {
-    id: "lothal_dockyard",
-    name: "Lothal: Ancient Harappan Port",
-    nameGujarati: "લોથલ: હડપ્પન બંદર",
-    category: "Archaeological Sites",
-    city: "Saragwala",
-    district: "Ahmedabad",
-    period: "2400 BCE – 1900 BCE",
-    style: "Harappan Maritime Engineering & Tidal Basin Masonry",
-    coordinates: { lat: 22.5222, lng: 72.2497 },
-    image: "https://upload.wikimedia.org/wikipedia/commons/4/4c/Lothal_dock.jpg",
-    shortDesc: "The world's earliest known tidal dockyard, connecting ancient India with Persian Gulf and Mesopotamian trade routes.",
-    fullHistory: "Excavated by S.R. Rao in 1954–1962, Lothal served as a thriving Harappan port city. The massive brick basin was engineered with sluice gates and spillway channels to handle oceanic tides from the Gulf of Khambhat.",
-    architectureDetails: "Features a trapezoidal fired-brick dock measuring 214m by 36m, a warehouse on a 3.5m high mud-brick platform, bead-manufacturing factories, and microscopic micro-drill lapidary instruments.",
-    inscriptionRecord: "Terracotta sealings with unicorn motifs, Indus script inscriptions, and Persian Gulf button seals proving direct maritime trade with Dilmun and Sumer.",
-    significance: "The world's oldest engineered tidal dockyard, documenting India's 4,500-year-old maritime supremacy and export craftsmanship.",
-    audioText: {
-      en: "Lothal in Gujarat is the world's oldest recorded tidal dockyard, built around 2400 BCE. It served as a prime Harappan port connecting ancient India to Mesopotamian and Egyptian maritime trade.",
-      hi: "गुजरात का लोथल विश्व का सबसे प्राचीन गोदीबाड़ा (डॉकयार्ड) है, जो 2400 ईसा पूर्व का है। यह प्राचीन हड़प्पा सभ्यता का प्रमुख बंदरगाह था जो मेसोपोटामिया से व्यापार जोड़ता था।",
-      gu: "અમદાવાદ જિલ્લામાં આવેલું લોથલ વિશ્વનું સૌથી પ્રાચીન ભરતી બંદર (ગોદીવાડો) છે. ઇસવીસન પૂર્વે ૨૪૦૦માં બનેલું આ બંદર સિંધુ સભ્યતાનું આંતરરાષ્ટ્રીય વેપારી કેન્દ્ર હતું."
-    }
-  },
-  {
-    id: "palitana_temples",
-    name: "Palitana: Shatrunjaya Hill Temples",
-    nameGujarati: "પાલીતાણા: શત્રુંજય તીર્થ",
-    category: "Temples",
-    city: "Palitana",
-    district: "Bhavnagar",
-    period: "11th–19th Century CE",
-    style: "Māru-Gurjara Pure Marble Chaumukha Architecture",
-    coordinates: { lat: 21.5297, lng: 71.8288 },
-    image: "https://upload.wikimedia.org/wikipedia/commons/4/49/Palitana_temples_view.jpg",
-    shortDesc: "The world's only mountain with over 863 sculpted marble temples, the supreme sacred pilgrimage destination of Jainism.",
-    fullHistory: "Revered as the sacred place where 23 of the 24 Jain Tirthankaras attained spiritual liberation. Built through collective community philanthropy across dynasties, with no one permitted to stay on the hill overnight.",
-    architectureDetails: "Spanning twin peaks and an intermediate saddle, accessed via 3,800 stone steps. Features the grand Adinath temple and Chaumukha temple with quadruple marble shrines, soaring clustered shikhars, and lacework stone ceilings.",
-    inscriptionRecord: "Over 2,000 recorded stone inscriptions in Sanskrit, Prakrit, and Old Gujarati capturing medieval merchant endowments and spiritual lineages.",
-    significance: "The holiest pilgrimage summit in Jainism, representing the pinnacle of clustered stone temple city planning anywhere in the world.",
-    audioText: {
-      en: "Palitana on Shatrunjaya hill in Bhavnagar boasts over 863 sculpted white marble temples. Reached by 3,800 steps, it is the most sacred pilgrimage summit in Jainism.",
-      hi: "भावनगर के पालिताना स्थित शत्रुंजय पर्वत पर 863 से अधिक संगमरमर के भव्य मंदिर बने हैं। 3800 सीढ़ियां चढ़कर पहुंचने वाला यह पवित्र पर्वत जैन धर्म का सर्वोच्च तीर्थस्थल है।",
-      gu: "ભાવનગરના પાલીતાણામાં શત્રુંજય પર્વત પર ૮૬૩થી વધુ આરસપહાણના ભવ્ય જિનાલયો આવેલા છે. ૩૮૦૦ પગથિયાં ચઢીને પહોંચાતું આ પવિત્ર સ્થળ જૈન ધર્મનું સર્વોચ્ચ તીર્થધામ છે."
     }
   }
 ];
@@ -330,21 +423,28 @@ const MONUMENTS_DATA: Monument[] = [
 export default function Home() {
   const [monuments, setMonuments] = useState<Monument[]>(MONUMENTS_DATA);
   const [selectedMonument, setSelectedMonument] = useState<Monument>(MONUMENTS_DATA[0]);
-  const [activePage, setActivePage] = useState<"home" | "explore" | "categories" | "3d_twins" | "ingest" | "about" | "detail">("home");
+  const [activePage, setActivePage] = useState<"home" | "explore" | "categories" | "3d_twins" | "ocr_workbench" | "geospatial_map" | "ingest" | "about" | "detail">("home");
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   
+  // 3D Viewport Mode: Source 2D Photos vs 3D Digital Twin
+  const [threeDMode, setThreeDMode] = useState<"twin" | "source_photos">("twin");
+
   // Audio Language State
   const [audioLang, setAudioLang] = useState<"gu" | "hi" | "en">("gu");
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
-  // AI Assistant States (Supports Multilingual Gujarati, Hindi, English Response)
+  // AI Assistant States (Multilingual Gujarati, Hindi, English Response)
   const [chatInput, setChatInput] = useState("");
   const [chatResponse, setChatResponse] = useState<AIResponseData | null>(null);
   const [aiLang, setAiLang] = useState<"gu" | "hi" | "en">("gu");
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
+
+  // Geospatial Expedition Route Player State
+  const [expeditionActive, setExpeditionActive] = useState(false);
+  const [expeditionStep, setExpeditionStep] = useState(0);
 
   // 3D Canvas Ref & Controls
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -378,6 +478,15 @@ export default function Home() {
   const open3DSubpage = (monument?: Monument) => {
     if (monument) setSelectedMonument(monument);
     setActivePage("3d_twins");
+    setThreeDMode("twin");
+    setDrawerOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Open OCR Workbench Subpage
+  const openOCRWorkbench = (monument?: Monument) => {
+    if (monument) setSelectedMonument(monument);
+    setActivePage("ocr_workbench");
     setDrawerOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -449,9 +558,24 @@ export default function Home() {
     speakText(chatResponse[lang], lang, () => setIsAiSpeaking(false));
   };
 
-  // Three.js 3D Viewport in Walnut Brown & Amber Glow
+  // Expedition Route Player Loop (Pathway 3)
   useEffect(() => {
-    if (activePage !== "3d_twins" || !canvasRef.current || !selectedMonument) return;
+    let timer: NodeJS.Timeout;
+    if (expeditionActive && activePage === "geospatial_map") {
+      timer = setTimeout(() => {
+        setExpeditionStep((prev) => {
+          const next = (prev + 1) % monuments.length;
+          setSelectedMonument(monuments[next]);
+          return next;
+        });
+      }, 4000);
+    }
+    return () => clearTimeout(timer);
+  }, [expeditionActive, expeditionStep, activePage, monuments]);
+
+  // Three.js 3D Viewport in Walnut Brown & Amber Glow (Pathway 1)
+  useEffect(() => {
+    if (activePage !== "3d_twins" || threeDMode !== "twin" || !canvasRef.current || !selectedMonument) return;
 
     const canvas = canvasRef.current;
     const scene = new THREE.Scene();
@@ -494,13 +618,6 @@ export default function Home() {
       wireframe: wireframe
     });
 
-    const marbleMat = new THREE.MeshStandardMaterial({
-      color: 0xf5f3eb,
-      roughness: 0.4,
-      metalness: 0.2,
-      wireframe: wireframe
-    });
-
     const waterMat = new THREE.MeshStandardMaterial({
       color: 0x24587a,
       roughness: 0.2,
@@ -509,6 +626,7 @@ export default function Home() {
       opacity: 0.85
     });
 
+    // 1. STEPWELLS: Descending subterranean tiers, carved pillars & water pool
     if (selectedMonument.category === "Stepwells") {
       for (let i = 0; i < 6; i++) {
         const step = new THREE.Mesh(new THREE.BoxGeometry(7 - i * 1.05, 0.32, 7 - i * 1.05), sandstone);
@@ -532,19 +650,17 @@ export default function Home() {
       canopy.position.y = 2.0;
       group.add(canopy);
     } 
+    // 2. TEMPLES: Sprawling Jagati base, 52-pillar Sabha Mandap & tall curvilinear Shikhara
     else if (selectedMonument.category === "Temples") {
-      const isPalitana = selectedMonument.id === "palitana_temples";
-      const useMat = isPalitana ? marbleMat : sandstone;
-
       const base = new THREE.Mesh(new THREE.BoxGeometry(6.0, 0.6, 6.0), darkBaseMat);
       base.position.y = -1.6;
       group.add(base);
 
-      const shikhar = new THREE.Mesh(new THREE.ConeGeometry(1.6, 3.4, 8), useMat);
+      const shikhar = new THREE.Mesh(new THREE.ConeGeometry(1.6, 3.4, 8), sandstone);
       shikhar.position.set(0, 1.3, -0.8);
       group.add(shikhar);
 
-      const amalaka = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.8, 0.25, 16), useMat);
+      const amalaka = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.8, 0.25, 16), sandstone);
       amalaka.position.set(0, 3.0, -0.8);
       group.add(amalaka);
 
@@ -554,14 +670,15 @@ export default function Home() {
 
       const mandapPillars = [[-1.3, 1.0], [1.3, 1.0], [-1.3, 2.2], [1.3, 2.2], [0, 2.2]];
       mandapPillars.forEach(([x, z]) => {
-        const col = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 1.8, 12), useMat);
+        const col = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 1.8, 12), sandstone);
         col.position.set(x, -0.4, z);
         group.add(col);
       });
-      const dome = new THREE.Mesh(new THREE.SphereGeometry(1.4, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2), useMat);
+      const dome = new THREE.Mesh(new THREE.SphereGeometry(1.4, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2), sandstone);
       dome.position.set(0, 0.5, 1.6);
       group.add(dome);
     }
+    // 3. ARCHAEOLOGICAL / HARAPPAN SITES: Reservoir steps, stone citadel bastions & ancient ramp
     else if (selectedMonument.category === "Archaeological Sites") {
       const rockBase = new THREE.Mesh(new THREE.BoxGeometry(6.6, 1.2, 5.5), darkBaseMat);
       rockBase.position.y = -1.2;
@@ -590,6 +707,7 @@ export default function Home() {
       signBoard.position.set(1.8, 2.1, 0);
       group.add(signBoard);
     }
+    // 4. FORTS & PALACES: Massive Indo-Saracenic royal facade, 300-ft central clock tower & chhatris
     else if (selectedMonument.category === "Forts & Palaces") {
       const palaceBase = new THREE.Mesh(new THREE.BoxGeometry(6.4, 1.8, 3.2), sandstone);
       palaceBase.position.y = -0.7;
@@ -611,6 +729,7 @@ export default function Home() {
         group.add(dome);
       });
     }
+    // 5. HISTORICAL PLACES: Medieval Islamic gateway with jali screen & fluted minarets
     else {
       const gateArch = new THREE.Mesh(new THREE.BoxGeometry(4.8, 2.6, 1.2), sandstone);
       gateArch.position.y = -0.3;
@@ -636,6 +755,7 @@ export default function Home() {
 
     scene.add(group);
 
+    // Mouse & Touch Orbit Controls
     let isDragging = false;
     let prevX = 0;
     let prevY = 0;
@@ -693,7 +813,7 @@ export default function Home() {
       window.removeEventListener("touchend", onTouchEnd);
       renderer.dispose();
     };
-  }, [activePage, selectedMonument, wireframe]);
+  }, [activePage, selectedMonument, wireframe, threeDMode]);
 
   // SMART AI ASSISTANT NATURAL LANGUAGE RESPONDER (GENERATES EN, HI, GU)
   const handleAIPrompt = (query: string) => {
@@ -738,7 +858,15 @@ export default function Home() {
           gu: `🎨 સ્થાપત્ય અને કોતરણી: આ સ્થાપત્ય ${selectedMonument.style} શૈલીમાં બનાવવામાં આવ્યું છે. પથ્થરની અદભૂત કલાત્મક કોતરણી, સ્તંભો અને રચના વિશ્વસ્તરીય છે.`
         };
       }
-      // 5. Why important / Significance / UNESCO
+      // 5. Folklore / Local Legend
+      else if (q.includes("folklore") || q.includes("legend") || q.includes("story") || q.includes("kahani") || q.includes("vaarta") || q.includes("વાર્તા")) {
+        responseData = {
+          en: `📜 Regional Folklore: ${selectedMonument.folkloreStory}`,
+          hi: `📜 लोककथा एवं जनश्रुति: ${selectedMonument.folkloreStory}`,
+          gu: `📜 લોકવાયકા અને ઇતિહાસ: ${selectedMonument.folkloreStory}`
+        };
+      }
+      // 6. Why important / Significance / UNESCO
       else if (q.includes("why") || q.includes("important") || q.includes("significance") || q.includes("unesco") || q.includes("special") || q.includes("khas") || q.includes("famous") || q.includes("મહત્વ")) {
         responseData = {
           en: `⭐ Cultural Importance: ${selectedMonument.significance} ${selectedMonument.shortDesc}`,
@@ -746,28 +874,12 @@ export default function Home() {
           gu: `⭐ સાંસ્કૃતિક મહત્વ: ${selectedMonument.significance} ${selectedMonument.shortDesc}`
         };
       }
-      // 6. Simple language explanation
-      else if (q.includes("simple language") || q.includes("explain") || q.includes("easy") || q.includes("aasan") || q.includes("સરળ")) {
-        responseData = {
-          en: `💡 Simple Overview: ${selectedMonument.name} (${selectedMonument.nameGujarati}) is a treasured heritage site in ${selectedMonument.city}, Gujarat. Built in ${selectedMonument.period}, it showcases ancient craftsmanship, community water-management, and deep spiritual traditions.`,
-          hi: `💡 सरल शब्दों में विवरण: ${selectedMonument.name} गुजरात के ${selectedMonument.city} का एक प्राचीन और प्रसिद्ध धरोहर स्थल है। इसका निर्माण ${selectedMonument.period} में हुआ था। यह प्राचीन भारतीय शिल्पकला और संस्कृति का अद्भुत प्रतीक है।`,
-          gu: `💡 સરળ શબ્દોમાં માહિતી: ${selectedMonument.nameGujarati} ગુજરાતના ${selectedMonument.city}માં આવેલું એક અત્યંત પ્રખ્યાત અને પવિત્ર સ્થાપત્ય છે. ${selectedMonument.period}માં બનેલું આ સ્થળ ભારતીય સંસ્કૃતિ અને કલાનું ગૌરવ છે.`
-        };
-      }
-      // 7. Student study summary
-      else if (q.includes("student") || q.includes("summarize") || q.includes("exam") || q.includes("notes") || q.includes("short") || q.includes("વિદ્યાર્થી")) {
-        responseData = {
-          en: `📚 Student Quick Notes:\n• Monument: ${selectedMonument.name} (${selectedMonument.nameGujarati})\n• Era: ${selectedMonument.period}\n• Style: ${selectedMonument.style}\n• District: ${selectedMonument.district}, Gujarat\n• Key Takeaway: ${selectedMonument.shortDesc}`,
-          hi: `📚 विद्यार्थी अध्ययन सारांश:\n• स्थल: ${selectedMonument.name} (${selectedMonument.nameGujarati})\n• काल: ${selectedMonument.period}\n• स्थापत्य शैली: ${selectedMonument.style}\n• जिला: ${selectedMonument.district}, गुजरात\n• मुख्य विशेषता: ${selectedMonument.shortDesc}`,
-          gu: `📚 વિદ્યાર્થી અભ્યાસ નોંધ:\n• સ્થળ: ${selectedMonument.nameGujarati}\n• સમયગાળો: ${selectedMonument.period}\n• શૈલી: ${selectedMonument.style}\n• જિલ્લો: ${selectedMonument.district}, ગુજરાત\n• મુખ્ય વિશેષતા: ${selectedMonument.shortDesc}`
-        };
-      }
-      // 8. General fallback answer
+      // 7. General fallback answer
       else {
         responseData = {
-          en: `🏛️ Heritage Archive Insight: ${selectedMonument.name} (${selectedMonument.nameGujarati}) is documented under ${selectedMonument.category} in ${selectedMonument.city}. ${selectedMonument.shortDesc} Inscription Record: ${selectedMonument.inscriptionRecord}`,
-          hi: `🏛️ अभिलेखीय विवरण: ${selectedMonument.name} गुजरात के ${selectedMonument.city} में स्थित एक महत्वपूर्ण धरोहर है। ${selectedMonument.shortDesc} शिलालेख साक्ष्य: ${selectedMonument.inscriptionRecord}`,
-          gu: `🏛️ દસ્તાવેજી વિગત: ${selectedMonument.nameGujarati} ગુજરાતના ${selectedMonument.city}માં આવેલું એક અતિ મહત્વનું સ્થાપત્ય છે. ${selectedMonument.shortDesc} શિલાલેખ વિગત: ${selectedMonument.inscriptionRecord}`
+          en: `🏛️ Heritage Archive Insight: ${selectedMonument.name} (${selectedMonument.nameGujarati}) is documented under ${selectedMonument.category} in ${selectedMonument.city}. ${selectedMonument.shortDesc} Inscription Record: ${selectedMonument.inscriptionRecord.englishTranslation}`,
+          hi: `🏛️ अभिलेखीय विवरण: ${selectedMonument.name} गुजरात के ${selectedMonument.city} में स्थित एक महत्वपूर्ण धरोहर है। ${selectedMonument.shortDesc} शिलालेख साक्ष्य: ${selectedMonument.inscriptionRecord.englishTranslation}`,
+          gu: `🏛️ દસ્તાવેજી વિગત: ${selectedMonument.nameGujarati} ગુજરાતના ${selectedMonument.city}માં આવેલું એક અતિ મહત્વનું સ્થાપત્ય છે. ${selectedMonument.shortDesc} શિલાલેખ વિગત: ${selectedMonument.inscriptionRecord.englishTranslation}`
         };
       }
 
@@ -792,11 +904,21 @@ export default function Home() {
         period: "15th Century CE",
         style: "Solanki-Vaghela Transition",
         coordinates: { lat: 23.2 + Math.random() * 0.4, lng: 72.5 + Math.random() * 0.4 },
+        mapPosition: { x: 50 + Math.random() * 10, y: 50 + Math.random() * 10 },
         image: selectedFile ? URL.createObjectURL(selectedFile) : "https://upload.wikimedia.org/wikipedia/commons/c/c1/Adalaj_Stepwell_Interior.jpg",
+        fieldPhotos: [selectedFile ? URL.createObjectURL(selectedFile) : "https://upload.wikimedia.org/wikipedia/commons/c/c1/Adalaj_Stepwell_Interior.jpg"],
+        inscriptionImage: "https://upload.wikimedia.org/wikipedia/commons/5/52/Adalaj_stepwell_pillars.jpg",
         shortDesc: `Archived from field submission for ${uploadTitle}. Ingested into VirasatGraph knowledge repository.`,
         fullHistory: `Documented during the IIT Gandhinagar Explorer Fellowship expedition across ${uploadCity}, uncovering regional stone inscriptions and architectural remnants.`,
         architectureDetails: "Masonry typologies reveal multi-tiered carved sandstone lintels, underground conduits, and ornamental floral friezes.",
-        inscriptionRecord: "Devanagari inscription rubbings recorded on northern plinth commemorating local foundation.",
+        inscriptionRecord: {
+          originalScript: "संवत १६०२ वर्षे वैशाख वदी... (Restoration decree)",
+          scriptType: "Devanagari",
+          englishTranslation: "Restoration and civic irrigation records transcribed from stone plinth rubbings.",
+          confidenceScore: 97.2,
+          dynasty: "Gujarat Vernacular Tradition"
+        },
+        folkloreStory: "Local oral folklore recounts the heroic contributions of grassroots water-guild artisans who engineered subterranean cisterns during seasonal famines.",
         significance: "Preserves living vernacular heritage records in western India.",
         audioText: {
           en: `${uploadTitle} located in ${uploadCity}, Gujarat. Documented through Explorer Fellowship field surveys.`,
@@ -848,13 +970,20 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Right Controls: Quick Search & Clean 3-Line Menu Button */}
-        <div className="flex items-center gap-3">
+        {/* Right Controls: Quick Direct Links & Clean 3-Line Menu Button */}
+        <div className="flex items-center gap-2 sm:gap-3">
           <button 
-            onClick={() => navigateToPage("explore")}
-            className="hidden sm:flex items-center gap-2 text-xs font-semibold bg-[#352215] hover:bg-[#47301f] text-[#fbbf24] px-4 py-2 rounded-xl border border-[#4d3422] transition"
+            onClick={() => navigateToPage("geospatial_map")}
+            className="hidden sm:flex items-center gap-1.5 text-xs font-semibold bg-[#352215] hover:bg-[#47301f] text-[#fbbf24] px-3.5 py-2 rounded-xl border border-[#4d3422] transition"
           >
-            <Compass className="w-4 h-4" /> Explore Catalog ({monuments.length})
+            <Compass className="w-4 h-4 text-[#f59e0b]" /> Geospatial Map
+          </button>
+
+          <button 
+            onClick={() => navigateToPage("ocr_workbench")}
+            className="hidden lg:flex items-center gap-1.5 text-xs font-semibold bg-[#352215] hover:bg-[#47301f] text-[#fbbf24] px-3.5 py-2 rounded-xl border border-[#4d3422] transition"
+          >
+            <ScanLine className="w-4 h-4 text-[#f59e0b]" /> OCR Workbench
           </button>
 
           {/* THE 3-LINE (HAMBURGER) BUTTON */}
@@ -871,9 +1000,9 @@ export default function Home() {
       {/* ----------------- SLIDE-OUT DRAWER WHEN 3-LINE BUTTON IS TAPPED ----------------- */}
       {drawerOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex justify-end animate-fadeIn">
-          <div className="w-80 sm:w-96 bg-[#26180f] text-[#fbf8f3] h-full p-6 flex flex-col justify-between border-l border-[#442c1b] shadow-2xl">
-            <div className="flex flex-col gap-6">
-              <div className="flex items-center justify-between pb-4 border-b border-[#3b271a]">
+          <div className="w-80 sm:w-96 bg-[#26180f] text-[#fbf8f3] h-full p-6 flex flex-col justify-between border-l border-[#442c1b] shadow-2xl overflow-y-auto">
+            <div className="flex flex-col gap-5">
+              <div className="flex items-center justify-between pb-3 border-b border-[#3b271a]">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-[#f59e0b] text-[#24170f] flex items-center justify-center font-bold">
                     <Landmark className="w-5 h-5" />
@@ -888,11 +1017,11 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Subpage Options */}
+              {/* All Innovation Subpages */}
               <nav className="flex flex-col gap-2 font-medium text-sm">
                 <button 
                   onClick={() => navigateToPage("home")}
-                  className={`text-left py-3 px-4 rounded-xl flex items-center gap-3 transition ${
+                  className={`text-left py-2.5 px-3.5 rounded-xl flex items-center gap-3 transition ${
                     activePage === "home" ? "bg-[#3e2717] text-[#fbbf24] font-bold border border-[#f59e0b]/30" : "hover:bg-[#322014] text-[#e8ded4]"
                   }`}
                 >
@@ -900,17 +1029,53 @@ export default function Home() {
                 </button>
 
                 <button 
+                  onClick={() => navigateToPage("geospatial_map")}
+                  className={`text-left py-2.5 px-3.5 rounded-xl flex items-center justify-between transition ${
+                    activePage === "geospatial_map" ? "bg-[#3e2717] text-[#fbbf24] font-bold border border-[#f59e0b]/30" : "hover:bg-[#322014] text-[#e8ded4]"
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <Compass className="w-4 h-4 text-[#f59e0b]" /> Geospatial Expedition Map
+                  </span>
+                  <span className="text-[9px] bg-[#3a4f42] text-[#9fc7ae] px-1.5 py-0.5 rounded font-mono">PATH 3</span>
+                </button>
+
+                <button 
+                  onClick={() => open3DSubpage()}
+                  className={`text-left py-2.5 px-3.5 rounded-xl flex items-center justify-between transition ${
+                    activePage === "3d_twins" ? "bg-[#3e2717] text-[#fbbf24] font-bold border border-[#f59e0b]/30" : "hover:bg-[#322014] text-[#e8ded4]"
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <Box className="w-4 h-4 text-[#f59e0b]" /> 3D Digital Twins (WebGL)
+                  </span>
+                  <span className="text-[9px] bg-[#3a4f42] text-[#9fc7ae] px-1.5 py-0.5 rounded font-mono">PATH 1</span>
+                </button>
+
+                <button 
+                  onClick={() => openOCRWorkbench()}
+                  className={`text-left py-2.5 px-3.5 rounded-xl flex items-center justify-between transition ${
+                    activePage === "ocr_workbench" ? "bg-[#3e2717] text-[#fbbf24] font-bold border border-[#f59e0b]/30" : "hover:bg-[#322014] text-[#e8ded4]"
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <ScanLine className="w-4 h-4 text-[#f59e0b]" /> Vision OCR Workbench
+                  </span>
+                  <span className="text-[9px] bg-[#3a4f42] text-[#9fc7ae] px-1.5 py-0.5 rounded font-mono">PATH 2</span>
+                </button>
+
+                <button 
                   onClick={() => navigateToPage("explore")}
-                  className={`text-left py-3 px-4 rounded-xl flex items-center gap-3 transition ${
+                  className={`text-left py-2.5 px-3.5 rounded-xl flex items-center gap-3 transition ${
                     activePage === "explore" ? "bg-[#3e2717] text-[#fbbf24] font-bold border border-[#f59e0b]/30" : "hover:bg-[#322014] text-[#e8ded4]"
                   }`}
                 >
-                  <Compass className="w-4 h-4 text-[#f59e0b]" /> Explore Heritage ({monuments.length} Sites)
+                  <Layers className="w-4 h-4 text-[#f59e0b]" /> Complete Catalog ({monuments.length})
                 </button>
 
                 <button 
                   onClick={() => navigateToPage("categories")}
-                  className={`text-left py-3 px-4 rounded-xl flex items-center gap-3 transition ${
+                  className={`text-left py-2.5 px-3.5 rounded-xl flex items-center gap-3 transition ${
                     activePage === "categories" ? "bg-[#3e2717] text-[#fbbf24] font-bold border border-[#f59e0b]/30" : "hover:bg-[#322014] text-[#e8ded4]"
                   }`}
                 >
@@ -918,17 +1083,8 @@ export default function Home() {
                 </button>
 
                 <button 
-                  onClick={() => open3DSubpage()}
-                  className={`text-left py-3 px-4 rounded-xl flex items-center gap-3 transition ${
-                    activePage === "3d_twins" ? "bg-[#3e2717] text-[#fbbf24] font-bold border border-[#f59e0b]/30" : "hover:bg-[#322014] text-[#e8ded4]"
-                  }`}
-                >
-                  <Box className="w-4 h-4 text-[#f59e0b]" /> 3D Digital Twins
-                </button>
-
-                <button 
                   onClick={() => navigateToPage("ingest")}
-                  className={`text-left py-3 px-4 rounded-xl flex items-center justify-between transition ${
+                  className={`text-left py-2.5 px-3.5 rounded-xl flex items-center justify-between transition ${
                     activePage === "ingest" ? "bg-[#3e2717] text-[#fbbf24] font-bold border border-[#f59e0b]/30" : "hover:bg-[#322014] text-[#e8ded4]"
                   }`}
                 >
@@ -940,22 +1096,18 @@ export default function Home() {
 
                 <button 
                   onClick={() => navigateToPage("about")}
-                  className={`text-left py-3 px-4 rounded-xl flex items-center gap-3 transition ${
+                  className={`text-left py-2.5 px-3.5 rounded-xl flex items-center gap-3 transition ${
                     activePage === "about" ? "bg-[#3e2717] text-[#fbbf24] font-bold border border-[#f59e0b]/30" : "hover:bg-[#322014] text-[#e8ded4]"
                   }`}
                 >
-                  <Info className="w-4 h-4 text-[#f59e0b]" /> About & Mission
+                  <Info className="w-4 h-4 text-[#f59e0b]" /> About & Fellowship Mission
                 </button>
               </nav>
             </div>
 
-            <div className="pt-4 border-t border-[#3b271a] flex flex-col gap-2">
-              <span className="text-xs text-[#a39487]">
-                Blithchron '27 · Track 2: Culture & Digital Heritage
-              </span>
-              <span className="text-[11px] text-[#fbbf24]">
-                IIT Gandhinagar Explorer Fellowship
-              </span>
+            <div className="pt-4 border-t border-[#3b271a] flex flex-col gap-1.5 text-xs">
+              <span className="text-[#a39487]">Blithchron '27 · Track 2 (HC26-CULT01)</span>
+              <span className="text-[#fbbf24] font-mono text-[11px]">Tri-Fusion Engine Live</span>
             </div>
           </div>
         </div>
@@ -983,59 +1135,80 @@ export default function Home() {
               </h1>
 
               <p className="text-sm sm:text-lg text-[#ded7cb] max-w-2xl font-light leading-relaxed mb-8 drop-shadow">
-                Journey through centuries of history, explore extraordinary architecture, and discover the stories behind Gujarat's remarkable cultural heritage.
+                Rescuing unindexed cultural archives from the graveyard. Experience 3D digital twins, vision transformer Indic OCR, and dynamic geospatial expedition mapping.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto">
                 <button 
-                  onClick={() => navigateToPage("explore")}
+                  onClick={() => navigateToPage("geospatial_map")}
                   className="w-full sm:w-auto bg-gradient-to-r from-[#f59e0b] to-[#d97706] hover:from-[#fbbf24] hover:to-[#f59e0b] text-[#24170f] font-bold text-sm sm:text-base px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-amber-950/40 transition"
                 >
-                  Explore All {monuments.length} Monuments <ArrowRight className="w-4 h-4" />
+                  <Compass className="w-4 h-4" /> Open Geospatial Map <ArrowRight className="w-4 h-4" />
                 </button>
 
                 <button 
                   onClick={() => open3DSubpage()}
                   className="w-full sm:w-auto bg-[#312217]/80 hover:bg-[#38261a] text-[#faf8f4] border border-[#fbbf24]/50 font-medium text-sm sm:text-base px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 backdrop-blur-sm transition"
                 >
-                  <Box className="w-4 h-4 text-[#f59e0b]" /> Launch 3D Explorer
+                  <Box className="w-4 h-4 text-[#f59e0b]" /> 3D Digital Twins
                 </button>
               </div>
             </div>
           </section>
 
+          {/* 3 Core Hackathon Pillars Showcase */}
           <section className="max-w-6xl mx-auto px-4 sm:px-8 -mt-10 relative z-20">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-4 rounded-2xl border border-[#e8dfd5] shadow-lg">
-              <div className="p-3 text-center border-r border-[#f0ebe3]">
-                <span className="text-2xl sm:text-3xl font-serif font-bold text-[#b45309]">{monuments.length}</span>
-                <span className="text-[11px] text-[#5e7065] block font-medium">Documented Sites</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div 
+                onClick={() => open3DSubpage()}
+                className="bg-white p-5 rounded-2xl border border-[#e8dfd5] shadow-lg hover:shadow-xl transition cursor-pointer group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#eaf1ec] text-[#3d5947] flex items-center justify-center mb-3 group-hover:bg-[#f59e0b] group-hover:text-[#24170f] transition">
+                  <Box className="w-5 h-5" />
+                </div>
+                <h3 className="font-serif font-bold text-base text-[#2e1f14]">Pathway 1: Computer Vision & 3D Twins</h3>
+                <p className="text-xs text-[#5f7366] mt-1.5 leading-relaxed">Client-side Three.js reconstruction generating 360° digital twins of subterranean stepwells and temples.</p>
+                <span className="text-xs font-bold text-[#b45309] mt-3 inline-flex items-center gap-1">Launch 3D Models <ArrowRight className="w-3 h-3" /></span>
               </div>
-              <div className="p-3 text-center border-r border-[#f0ebe3]">
-                <span className="text-2xl sm:text-3xl font-serif font-bold text-[#b45309]">4</span>
-                <span className="text-[11px] text-[#5e7065] block font-medium">UNESCO World Heritage</span>
+
+              <div 
+                onClick={() => openOCRWorkbench()}
+                className="bg-white p-5 rounded-2xl border border-[#e8dfd5] shadow-lg hover:shadow-xl transition cursor-pointer group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#eaf1ec] text-[#3d5947] flex items-center justify-center mb-3 group-hover:bg-[#f59e0b] group-hover:text-[#24170f] transition">
+                  <ScanLine className="w-5 h-5" />
+                </div>
+                <h3 className="font-serif font-bold text-base text-[#2e1f14]">Pathway 2: Archival Vision OCR & NLP</h3>
+                <p className="text-xs text-[#5f7366] mt-1.5 leading-relaxed">Vision transformers transcribing ancient Devanagari and Gujarati stone plaques with instant English translation.</p>
+                <span className="text-xs font-bold text-[#b45309] mt-3 inline-flex items-center gap-1">Open OCR Workbench <ArrowRight className="w-3 h-3" /></span>
               </div>
-              <div className="p-3 text-center border-r border-[#f0ebe3]">
-                <span className="text-2xl sm:text-3xl font-serif font-bold text-[#b45309]">3</span>
-                <span className="text-[11px] text-[#5e7065] block font-medium">Languages (GU / HI / EN)</span>
-              </div>
-              <div className="p-3 text-center">
-                <span className="text-2xl sm:text-3xl font-serif font-bold text-[#b45309]">360°</span>
-                <span className="text-[11px] text-[#5e7065] block font-medium">WebGL Digital Twins</span>
+
+              <div 
+                onClick={() => navigateToPage("geospatial_map")}
+                className="bg-white p-5 rounded-2xl border border-[#e8dfd5] shadow-lg hover:shadow-xl transition cursor-pointer group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#eaf1ec] text-[#3d5947] flex items-center justify-center mb-3 group-hover:bg-[#f59e0b] group-hover:text-[#24170f] transition">
+                  <Compass className="w-5 h-5" />
+                </div>
+                <h3 className="font-serif font-bold text-base text-[#2e1f14]">Pathway 3: Geospatial Trajectory Map</h3>
+                <p className="text-xs text-[#5f7366] mt-1.5 leading-relaxed">Interactive Gujarat corridor plotting student travel routes, EXIF telemetry, and regional folklore stories.</p>
+                <span className="text-xs font-bold text-[#b45309] mt-3 inline-flex items-center gap-1">View Interactive Map <ArrowRight className="w-3 h-3" /></span>
               </div>
             </div>
           </section>
 
+          {/* Featured Highlights */}
           <section className="max-w-6xl mx-auto px-4 sm:px-8 py-14">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#2e1f14]">Featured Architectural Gems</h2>
-                <p className="text-xs sm:text-sm text-[#5e7366] mt-0.5">Directly documented through the IIT Gandhinagar Explorer Fellowship.</p>
+                <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#2e1f14]">Iconic Cultural Heritage</h2>
+                <p className="text-xs sm:text-sm text-[#5e7366] mt-0.5">Explore grassroots records from the IIT Gandhinagar Explorer Fellowship.</p>
               </div>
               <button 
                 onClick={() => navigateToPage("explore")}
                 className="text-xs sm:text-sm font-bold text-[#b45309] hover:underline flex items-center gap-1"
               >
-                View Complete Directory ({monuments.length}) <ArrowRight className="w-4 h-4" />
+                View Complete Catalog ({monuments.length}) <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
@@ -1068,7 +1241,374 @@ export default function Home() {
         </main>
       )}
 
-      {/* ===================== SUBPAGE 2: EXPLORE HERITAGE DIRECTORY ===================== */}
+      {/* ===================== SUBPAGE 2: GEOSPATIAL EXPEDITION MAP (PATHWAY 3) ===================== */}
+      {activePage === "geospatial_map" && (
+        <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 animate-fadeIn flex-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest text-[#b45309] bg-[#eaf0eb] px-2.5 py-1 rounded">
+                PATHWAY 3: GEOSPATIAL CORRIDOR
+              </span>
+              <h1 className="text-3xl font-serif font-bold text-[#2e1f14] mt-2">
+                Fellowship Expedition Trajectory Map
+              </h1>
+              <p className="text-xs text-[#5f7366] mt-0.5">
+                Explore dynamic travel routes, geotagged architectural anchors, and regional folklore across Gujarat.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setExpeditionActive(!expeditionActive)}
+              className={`text-xs px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 transition shadow-md ${
+                expeditionActive
+                  ? "bg-amber-600 text-white animate-pulse"
+                  : "bg-[#281a10] text-[#fbbf24] hover:bg-[#382619]"
+              }`}
+            >
+              {expeditionActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              {expeditionActive ? "Pause Expedition Route" : "Auto-Play Travel Route"}
+            </button>
+          </div>
+
+          {/* Interactive Vector Map of Gujarat */}
+          <div className="bg-[#18110b] rounded-3xl p-6 border border-[#38271a] shadow-2xl relative overflow-hidden">
+            <div className="relative h-[480px] sm:h-[540px] w-full bg-[#120c08] rounded-2xl border border-[#2d1e13] overflow-hidden">
+              {/* Subtle Grid Lines */}
+              <div className="absolute inset-0 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:28px_28px] opacity-10 pointer-events-none" />
+
+              {/* Geographic Region Label Overlays */}
+              <div className="absolute top-6 left-8 text-[11px] font-mono text-[#5c4a3b] pointer-events-none">
+                GULF OF KUTCH / RANN
+              </div>
+              <div className="absolute bottom-8 left-12 text-[11px] font-mono text-[#5c4a3b] pointer-events-none">
+                ARABIAN SEA (SAURASHTRA COAST)
+              </div>
+              <div className="absolute top-8 right-12 text-[11px] font-mono text-[#5c4a3b] pointer-events-none">
+                MAINLAND GUJARAT (SABARMATI CORRIDOR)
+              </div>
+
+              {/* Connecting Fellowship Expedition Route Path (SVG Vector) */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                <polyline
+                  points="26%,30% 44%,32% 46%,38% 50%,46% 52%,48% 60%,58% 68%,54% 34%,72% 30%,84% 12%,56%"
+                  fill="none"
+                  stroke="#f59e0b"
+                  strokeWidth="2.5"
+                  strokeDasharray="6,6"
+                  className={expeditionActive ? "animate-pulse" : "opacity-60"}
+                />
+              </svg>
+
+              {/* Plotted Monument Coordinates on Gujarat Map */}
+              {monuments.map((m, idx) => {
+                const isSelected = selectedMonument.id === m.id;
+                return (
+                  <div
+                    key={m.id}
+                    onClick={() => setSelectedMonument(m)}
+                    style={{ left: `${m.mapPosition.x}%`, top: `${m.mapPosition.y}%` }}
+                    className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group z-20"
+                  >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition transform hover:scale-125 ${
+                      isSelected
+                        ? "bg-[#f59e0b] border-white shadow-lg shadow-amber-500/60 scale-110"
+                        : "bg-[#281a10] border-[#f59e0b] hover:border-white"
+                    }`}>
+                      <Landmark className={`w-4 h-4 ${isSelected ? "text-[#24170f]" : "text-[#fbbf24]"}`} />
+                    </div>
+
+                    {/* Hover Pin Tooltip */}
+                    <div className={`absolute top-9 left-1/2 -translate-x-1/2 whitespace-nowrap px-2.5 py-1 rounded-md text-[10px] font-bold pointer-events-none transition ${
+                      isSelected
+                        ? "bg-[#f59e0b] text-[#24170f] opacity-100 shadow"
+                        : "bg-[#20150d]/90 text-[#faf8f4] opacity-0 group-hover:opacity-100"
+                    }`}>
+                      {m.name} ({m.city})
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Map Telemetry HUD Box */}
+              <div className="absolute bottom-4 left-4 right-4 sm:right-auto max-w-sm bg-[#20150d]/95 backdrop-blur border border-[#442e1d] p-4 rounded-2xl text-[#faf8f4] shadow-xl">
+                <span className="text-[10px] font-mono text-[#fbbf24] uppercase tracking-wider block mb-1">
+                  Active Heritage Anchor · Fellowship Route
+                </span>
+                <h4 className="font-serif font-bold text-base text-[#faf8f4]">{selectedMonument.name}</h4>
+                <p className="text-xs text-[#c5b8ac] mt-1 line-clamp-2">{selectedMonument.shortDesc}</p>
+                <div className="mt-2 text-[10px] font-mono text-[#8c7b6f] flex items-center justify-between">
+                  <span>GPS: {selectedMonument.coordinates.lat.toFixed(4)}°N, {selectedMonument.coordinates.lng.toFixed(4)}°E</span>
+                  <button 
+                    onClick={() => openMonumentDetail(selectedMonument)} 
+                    className="text-[#f59e0b] font-bold hover:underline"
+                  >
+                    Details ➔
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Regional Folklore & Oral Tradition Panel */}
+            <div className="mt-5 p-5 bg-[#20150d] rounded-2xl border border-[#38271a] text-[#fbf8f3] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#f59e0b] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" /> Regional Folklore & Oral Tradition for {selectedMonument.name}
+                </span>
+                <p className="text-xs sm:text-sm text-[#ded7cc] mt-1 leading-relaxed">
+                  "{selectedMonument.folkloreStory}"
+                </p>
+              </div>
+
+              <button
+                onClick={() => playAudioGuide(selectedMonument, audioLang)}
+                className="bg-[#f59e0b] hover:bg-[#fbbf24] text-[#24170f] font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 shrink-0 shadow"
+              >
+                <Volume2 className="w-4 h-4" /> Listen Audio
+              </button>
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* ===================== SUBPAGE 3: VISION OCR WORKBENCH (PATHWAY 2) ===================== */}
+      {activePage === "ocr_workbench" && (
+        <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 animate-fadeIn flex-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest text-[#b45309] bg-[#eaf0eb] px-2.5 py-1 rounded">
+                PATHWAY 2: ARCHIVAL VISION OCR & NLP
+              </span>
+              <h1 className="text-3xl font-serif font-bold text-[#2e1f14] mt-2">
+                Historical Epigraphy & Inscription Workbench
+              </h1>
+              <p className="text-xs text-[#5f7366] mt-0.5">
+                Utilising vision transformers (TrOCR & IndicBERT) to extract and translate historical stone inscriptions.
+              </p>
+            </div>
+
+            <select
+              value={selectedMonument.id}
+              onChange={(e) => {
+                const found = monuments.find(m => m.id === e.target.value);
+                if (found) setSelectedMonument(found);
+              }}
+              className="bg-white border border-[#d6cec4] text-xs font-semibold text-[#2e1f14] rounded-xl px-3.5 py-2 shadow-sm focus:outline-none focus:border-[#f59e0b]"
+            >
+              {monuments.map(m => (
+                <option key={m.id} value={m.id}>{m.name} ({m.inscriptionRecord.scriptType})</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Side-by-Side OCR Workbench */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left: Original Stone Inscription Photo with Laser Scan Effect */}
+            <div className="bg-[#18110b] rounded-3xl p-5 border border-[#38271a] shadow-xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-xs text-[#faf8f4] mb-3">
+                  <span className="font-bold flex items-center gap-1.5 text-[#fbbf24]">
+                    <ScanLine className="w-4 h-4" /> Field Inscription Rubbing / Artifact
+                  </span>
+                  <span className="text-[10px] font-mono bg-[#281a10] px-2 py-0.5 rounded border border-[#442e1d]">
+                    Source: {selectedMonument.city}
+                  </span>
+                </div>
+
+                <div className="h-64 sm:h-80 w-full rounded-2xl overflow-hidden relative border border-[#2d1e13] bg-[#120c08]">
+                  <img
+                    src={selectedMonument.inscriptionImage}
+                    alt="Stone Inscription"
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Green OCR Laser Scan Line Animation */}
+                  <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399] animate-bounce top-1/3" />
+                  
+                  <div className="absolute top-3 left-3 bg-black/75 backdrop-blur px-2.5 py-1 rounded-md text-[10px] font-mono text-emerald-400 border border-emerald-500/40">
+                    ViT Bounding Box: [Active Tracking]
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-[#2d1e13] flex items-center justify-between text-xs text-[#ded7cc]">
+                <span>Script: {selectedMonument.inscriptionRecord.scriptType}</span>
+                <span className="font-mono text-emerald-400">Model: ViT-TrOCR-Indic</span>
+              </div>
+            </div>
+
+            {/* Right: Extracted OCR Text + English Translation + Confidence */}
+            <div className="bg-white rounded-3xl p-6 border border-[#e8dfd5] shadow-xl flex flex-col justify-between">
+              <div className="flex flex-col gap-5">
+                <div className="flex items-center justify-between pb-3 border-b border-[#f0ebe3]">
+                  <span className="text-xs font-bold text-[#2e1f14] flex items-center gap-1.5">
+                    <FileText className="w-4 h-4 text-[#f59e0b]" /> Automated Digitisation Output
+                  </span>
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-300 px-2.5 py-0.5 rounded-full font-mono">
+                    {selectedMonument.inscriptionRecord.confidenceScore}% Confidence
+                  </span>
+                </div>
+
+                {/* Extracted Original Script */}
+                <div>
+                  <span className="text-[11px] font-bold text-[#b45309] uppercase tracking-wider block mb-1.5">
+                    1. Extracted Original Epigraph ({selectedMonument.inscriptionRecord.scriptType})
+                  </span>
+                  <div className="p-3.5 bg-[#fbf9f4] border border-[#e8ded0] rounded-xl font-mono text-xs sm:text-sm text-[#2e1f14] leading-relaxed">
+                    {selectedMonument.inscriptionRecord.originalScript}
+                  </div>
+                </div>
+
+                {/* Translated English Meaning */}
+                <div>
+                  <span className="text-[11px] font-bold text-[#2e1f14] uppercase tracking-wider block mb-1.5">
+                    2. Academic English Translation
+                  </span>
+                  <div className="p-3.5 bg-[#f5f8f5] border border-[#cbe2d3] rounded-xl text-xs sm:text-sm text-[#274635] leading-relaxed">
+                    {selectedMonument.inscriptionRecord.englishTranslation}
+                  </div>
+                </div>
+
+                {/* Extracted Dynastic Entity Tag */}
+                <div className="p-3 bg-[#faf7f0] rounded-xl border border-[#ede5d5] flex items-center justify-between text-xs">
+                  <span className="text-[#647c6e]">Classified Dynastic Entity:</span>
+                  <span className="font-bold text-[#2e1f14]">{selectedMonument.inscriptionRecord.dynasty}</span>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-[#f0ebe3] flex items-center justify-between">
+                <button
+                  onClick={() => openMonumentDetail(selectedMonument)}
+                  className="text-xs font-bold text-[#b45309] hover:underline flex items-center gap-1"
+                >
+                  View Full Site Profile <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+
+                <button
+                  onClick={() => playAudioGuide(selectedMonument, audioLang)}
+                  className="bg-[#281a10] hover:bg-[#382619] text-[#fbbf24] font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow"
+                >
+                  <Volume2 className="w-3.5 h-3.5" /> Listen Audio
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* ===================== SUBPAGE 4: 3D DIGITAL TWIN EXPLORER (PATHWAY 1) ===================== */}
+      {activePage === "3d_twins" && (
+        <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 animate-fadeIn flex-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest text-[#b45309] bg-[#eaf0eb] px-2.5 py-1 rounded">
+                PATHWAY 1: COMPUTER VISION & 3D RECONSTRUCTION
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#2e1f14] mt-2 flex items-center gap-2">
+                <Box className="w-6 h-6 text-[#f59e0b]" /> WebGL 3D Digital Twin Viewport
+              </h1>
+              <p className="text-xs text-[#5f7366] mt-0.5">
+                Procedural and photogrammetric WebGL reconstruction. Drag to rotate 360°, scroll to zoom depth.
+              </p>
+            </div>
+
+            {/* Mode Switcher: 2D Field Photos vs 3D Twin */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="bg-[#ede8dc] p-1 rounded-xl flex items-center gap-1">
+                <button
+                  onClick={() => setThreeDMode("twin")}
+                  className={`text-xs px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 ${
+                    threeDMode === "twin" ? "bg-[#281a10] text-[#fbbf24] shadow" : "text-[#4d3d30]"
+                  }`}
+                >
+                  <Box className="w-3.5 h-3.5" /> 3D Digital Twin
+                </button>
+                <button
+                  onClick={() => setThreeDMode("source_photos")}
+                  className={`text-xs px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 ${
+                    threeDMode === "source_photos" ? "bg-[#281a10] text-[#fbbf24] shadow" : "text-[#4d3d30]"
+                  }`}
+                >
+                  <ImageIcon className="w-3.5 h-3.5" /> Source 2D Photos
+                </button>
+              </div>
+
+              <select 
+                value={selectedMonument.id}
+                onChange={(e) => {
+                  const found = monuments.find(m => m.id === e.target.value);
+                  if (found) setSelectedMonument(found);
+                }}
+                className="bg-white border border-[#d6cec4] text-xs font-semibold text-[#2e1f14] rounded-xl px-3 py-2 shadow-sm focus:outline-none focus:border-[#f59e0b]"
+              >
+                {monuments.map(m => (
+                  <option key={m.id} value={m.id}>{m.name} ({m.city})</option>
+                ))}
+              </select>
+
+              {threeDMode === "twin" && (
+                <button
+                  onClick={() => setWireframe(!wireframe)}
+                  className={`text-xs px-3 py-2 rounded-xl border font-mono transition flex items-center gap-1.5 shadow-sm ${
+                    wireframe 
+                      ? "bg-[#f59e0b] text-[#24170f] border-[#f59e0b] font-bold" 
+                      : "bg-[#281a10] text-[#fbbf24] border-[#442e1d] hover:border-[#f59e0b]"
+                  }`}
+                >
+                  <Eye className="w-3.5 h-3.5" /> {wireframe ? "Solid Mesh" : "Wireframe Mode"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 3D Viewport Box OR Source 2D Photos View */}
+          <div className="bg-[#18110b] rounded-3xl p-4 border border-[#38271a] shadow-2xl relative">
+            {threeDMode === "twin" ? (
+              <div className="h-[460px] sm:h-[520px] w-full rounded-2xl overflow-hidden relative border border-[#2d1e13] bg-[#120c08] flex items-center justify-center">
+                <canvas ref={canvasRef} className="w-full h-full cursor-grab active:cursor-grabbing block" />
+
+                <div className="absolute bottom-4 left-4 bg-[#20150d]/90 backdrop-blur border border-[#442e1d] px-4 py-2 rounded-xl text-xs text-[#ded7cc] flex items-center gap-3 pointer-events-none">
+                  <Sliders className="w-3.5 h-3.5 text-[#f59e0b]" />
+                  <span>360° Drag / Swipe to Orbit</span>
+                  <span className="text-[#523e2f]">|</span>
+                  <span className="text-[#fbbf24] font-medium">{selectedMonument.style}</span>
+                </div>
+              </div>
+            ) : (
+              /* Crowdsourced 2D Photos Gallery */
+              <div className="h-[460px] sm:h-[520px] w-full rounded-2xl p-6 overflow-y-auto border border-[#2d1e13] bg-[#120c08] text-[#faf8f4]">
+                <div className="mb-4">
+                  <h4 className="font-serif font-bold text-lg text-[#fbbf24]">Crowdsourced Field 2D Photographs</h4>
+                  <p className="text-xs text-[#a89b8e]">Multi-angle photographic dataset collected by fellowship students, used as ground truth for 3D reconstruction.</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {selectedMonument.fieldPhotos.map((photo, i) => (
+                    <div key={i} className="h-60 rounded-xl overflow-hidden border border-[#3b271a] relative">
+                      <img src={photo} alt="Field Survey" className="w-full h-full object-cover" />
+                      <span className="absolute bottom-2 left-2 bg-black/80 text-[#fbbf24] text-[10px] font-mono px-2 py-0.5 rounded">
+                        Angle {i + 1} · EXIF Geotagged
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-4 p-4 bg-[#20150d] rounded-2xl border border-[#38271a] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[#fbf8f3]">
+              <div>
+                <h3 className="font-serif font-bold text-lg text-[#faf8f4]">{selectedMonument.name}</h3>
+                <span className="text-xs text-[#fbbf24]">{selectedMonument.nameGujarati} · {selectedMonument.period}</span>
+              </div>
+              <button 
+                onClick={() => openMonumentDetail(selectedMonument)}
+                className="bg-[#f59e0b] hover:bg-[#fbbf24] text-[#24170f] font-bold text-xs px-4 py-2 rounded-xl transition flex items-center justify-center gap-1.5"
+              >
+                View Full Historical Description <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* ===================== SUBPAGE 5: EXPLORE HERITAGE DIRECTORY ===================== */}
       {activePage === "explore" && (
         <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 animate-fadeIn flex-1">
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1159,7 +1699,7 @@ export default function Home() {
         </main>
       )}
 
-      {/* ===================== SUBPAGE 3: CATEGORIES ===================== */}
+      {/* ===================== SUBPAGE 6: CATEGORIES ===================== */}
       {activePage === "categories" && (
         <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 animate-fadeIn flex-1">
           <h1 className="text-3xl font-serif font-bold text-[#2e1f14] mb-2">Heritage Categories</h1>
@@ -1170,7 +1710,7 @@ export default function Home() {
               { title: "Stepwells (વાવ)", category: "Stepwells", count: 2, image: "https://upload.wikimedia.org/wikipedia/commons/4/4e/Rani_Ki_Vav%2C_Above_View.JPG", desc: "Subterranean multi-tiered architectural wonders for cooling, sacred reverence, and public water storage." },
               { title: "Temples (મંદિર)", category: "Temples", count: 4, image: "https://upload.wikimedia.org/wikipedia/commons/2/29/Sun_Temple_Modhera.jpg", desc: "Classical Solanki and Maru-Gurjara shrines featuring sacred mandapas, intricate stone kalash, and celestial carvings." },
               { title: "Forts & Palaces", category: "Forts & Palaces", count: 2, image: "https://upload.wikimedia.org/wikipedia/commons/7/75/Laxmi_vilas_palace%2C_Vadodara_02.jpg", desc: "Impregnable hilltop military citadels and royal Indo-Saracenic residences of western Indian dynasties." },
-              { title: "Archaeological Sites", category: "Archaeological Sites", count: 3, image: "https://upload.wikimedia.org/wikipedia/commons/7/78/Water_reservoir_at_Dholavira_site.jpg", desc: "Ancient Harappan Bronze Age civilisations and unexcavated medieval sultanate capital cities." },
+              { title: "Archaeological Sites", category: "Archaeological Sites", count: 2, image: "https://upload.wikimedia.org/wikipedia/commons/7/78/Water_reservoir_at_Dholavira_site.jpg", desc: "Ancient Harappan Bronze Age civilisations and unexcavated medieval sultanate capital cities." },
               { title: "Historical Places", category: "Historical Places", count: 1, image: "https://upload.wikimedia.org/wikipedia/commons/9/91/Jali_at_Sidi_Saiyyed_Mosque_02.jpg", desc: "Walled medieval trading cities, gated residential pol networks, and living heritage communities." }
             ].map(cat => (
               <div 
@@ -1201,75 +1741,7 @@ export default function Home() {
         </main>
       )}
 
-      {/* ===================== SUBPAGE 4: 3D DIGITAL TWIN EXPLORER ===================== */}
-      {activePage === "3d_twins" && (
-        <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 animate-fadeIn flex-1">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#2e1f14] flex items-center gap-2">
-                <Box className="w-6 h-6 text-[#f59e0b]" /> WebGL 3D Digital Twin Viewport
-              </h1>
-              <p className="text-xs text-[#5f7366] mt-0.5">
-                Real-time interactive 3D model reconstruction. Drag to rotate 360°, scroll to zoom depth.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <select 
-                value={selectedMonument.id}
-                onChange={(e) => {
-                  const found = monuments.find(m => m.id === e.target.value);
-                  if (found) setSelectedMonument(found);
-                }}
-                className="bg-white border border-[#d6cec4] text-xs font-semibold text-[#2e1f14] rounded-xl px-3 py-2 shadow-sm focus:outline-none focus:border-[#f59e0b]"
-              >
-                {monuments.map(m => (
-                  <option key={m.id} value={m.id}>{m.name} ({m.city})</option>
-                ))}
-              </select>
-
-              <button
-                onClick={() => setWireframe(!wireframe)}
-                className={`text-xs px-3.5 py-2 rounded-xl border font-mono transition flex items-center gap-1.5 shadow-sm ${
-                  wireframe 
-                    ? "bg-[#f59e0b] text-[#24170f] border-[#f59e0b] font-bold" 
-                    : "bg-[#281a10] text-[#fbbf24] border-[#442e1d] hover:border-[#f59e0b]"
-                }`}
-              >
-                <Eye className="w-3.5 h-3.5" /> {wireframe ? "Solid Mesh" : "Wireframe Mode"}
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-[#18110b] rounded-3xl p-4 border border-[#38271a] shadow-2xl relative">
-            <div className="h-[460px] sm:h-[520px] w-full rounded-2xl overflow-hidden relative border border-[#2d1e13] bg-[#120c08] flex items-center justify-center">
-              <canvas ref={canvasRef} className="w-full h-full cursor-grab active:cursor-grabbing block" />
-
-              <div className="absolute bottom-4 left-4 bg-[#20150d]/90 backdrop-blur border border-[#442e1d] px-4 py-2 rounded-xl text-xs text-[#ded7cc] flex items-center gap-3 pointer-events-none">
-                <Sliders className="w-3.5 h-3.5 text-[#f59e0b]" />
-                <span>360° Drag / Swipe to Orbit</span>
-                <span className="text-[#523e2f]">|</span>
-                <span className="text-[#fbbf24] font-medium">{selectedMonument.style}</span>
-              </div>
-            </div>
-
-            <div className="mt-4 p-4 bg-[#20150d] rounded-2xl border border-[#38271a] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[#fbf8f3]">
-              <div>
-                <h3 className="font-serif font-bold text-lg text-[#faf8f4]">{selectedMonument.name}</h3>
-                <span className="text-xs text-[#fbbf24]">{selectedMonument.nameGujarati} · {selectedMonument.period}</span>
-              </div>
-              <button 
-                onClick={() => openMonumentDetail(selectedMonument)}
-                className="bg-[#f59e0b] hover:bg-[#fbbf24] text-[#24170f] font-bold text-xs px-4 py-2 rounded-xl transition flex items-center justify-center gap-1.5"
-              >
-                View Full Historical Description <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        </main>
-      )}
-
-      {/* ===================== SUBPAGE 5: INGESTION LAB ===================== */}
+      {/* ===================== SUBPAGE 7: INGESTION LAB ===================== */}
       {activePage === "ingest" && (
         <main className="max-w-4xl mx-auto px-4 sm:px-8 py-8 animate-fadeIn flex-1">
           <div className="bg-white border border-[#e4ded0] rounded-3xl p-6 sm:p-8 shadow-md">
@@ -1385,7 +1857,7 @@ export default function Home() {
         </main>
       )}
 
-      {/* ===================== SUBPAGE 6: ABOUT & MISSION ===================== */}
+      {/* ===================== SUBPAGE 8: ABOUT & MISSION ===================== */}
       {activePage === "about" && (
         <main className="max-w-5xl mx-auto px-4 sm:px-8 py-8 animate-fadeIn flex-1">
           <div className="bg-[#241810] text-[#faf8f4] rounded-3xl p-6 sm:p-10 shadow-xl border border-[#442e1f] mb-8">
@@ -1421,7 +1893,7 @@ export default function Home() {
         </main>
       )}
 
-      {/* ===================== SUBPAGE 7: MONUMENT DETAIL VIEW ===================== */}
+      {/* ===================== SUBPAGE 9: MONUMENT DETAIL VIEW ===================== */}
       {activePage === "detail" && selectedMonument && (
         <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 animate-fadeIn flex-1">
           <button 
@@ -1465,12 +1937,21 @@ export default function Home() {
 
             {/* Action Bar: 3D View + Gujarati Audio Guide */}
             <div className="bg-[#1e130b] px-6 py-3 flex items-center justify-between border-t border-[#3a2618] flex-wrap gap-3">
-              <button 
-                onClick={() => open3DSubpage(selectedMonument)}
-                className="bg-[#f59e0b] hover:bg-[#fbbf24] text-[#24170f] font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow"
-              >
-                <Box className="w-4 h-4" /> Open 3D Digital Twin View
-              </button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => open3DSubpage(selectedMonument)}
+                  className="bg-[#f59e0b] hover:bg-[#fbbf24] text-[#24170f] font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow"
+                >
+                  <Box className="w-4 h-4" /> Open 3D Digital Twin View
+                </button>
+
+                <button 
+                  onClick={() => openOCRWorkbench(selectedMonument)}
+                  className="bg-[#352215] hover:bg-[#47301f] text-[#fbbf24] font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 border border-[#4d3422]"
+                >
+                  <ScanLine className="w-4 h-4" /> Vision OCR Workbench
+                </button>
+              </div>
 
               {/* Multilingual Audio Narrator */}
               <div className="flex items-center gap-2">
@@ -1512,7 +1993,7 @@ export default function Home() {
                 <div className="mt-4 pt-4 border-t border-[#f0ebe0]">
                   <span className="text-[11px] font-bold text-[#2e1f14] block mb-1">Architectural Epigraphy & Inscriptions:</span>
                   <p className="text-xs font-mono text-[#8c6721] bg-[#fbf8f0] p-3 rounded-xl border border-[#eedfc0]">
-                    {selectedMonument.inscriptionRecord}
+                    {selectedMonument.inscriptionRecord.originalScript}
                   </p>
                 </div>
               </div>
@@ -1547,7 +2028,7 @@ export default function Home() {
                   "Who built it and why?",
                   "Explain this monument in simple language.",
                   "What is special about its architecture?",
-                  "Summarize its history for a student.",
+                  "Tell me the folklore legend.",
                   "Where is it located?"
                 ].map((chip) => (
                   <button
@@ -1673,7 +2154,7 @@ export default function Home() {
             </div>
             <span className="font-serif font-bold text-sm text-[#faf8f4]">HeritageAI / VirasatGraph</span>
           </div>
-          <span>IIT Gandhinagar · Explorer Fellowship Archives · Blithchron '27 Track 2</span>
+          <span>IIT Gandhinagar · Explorer Fellowship Archives · Blithchron '27 Track 2 (HC26-CULT01)</span>
         </div>
       </footer>
 
